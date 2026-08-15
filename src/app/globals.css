@@ -1,26 +1,291 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------ */
+/* Palette                                                             */
+/* ------------------------------------------------------------------ */
+/* Deliberately not the green-on-black hacker cliché. Near-black with a
+   cool cast, one restrained green for passes, one hot coral for the
+   single failure, and a cold blue for interactive affordances.        */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #08090c;
+  --bg-raised: #0d0f14;
+  --panel: #101319;
+  --panel-hi: #161a22;
+  --line: #1c212b;
+  --line-soft: #161a22;
+
+  --fg: #d9dee6;
+  --fg-strong: #f2f5f9;
+  --fg-dim: #737d8c;
+  --fg-faint: #4a5361;
+
+  --pass: #3fcf8e;
+  --pass-dim: #1e6b4b;
+  --fail: #ff5f56;
+  --fail-dim: #7a2b26;
+  --accent: #4cc2ff;
+  --accent-dim: #1d5a7a;
+  --warn: #f0b429;
+  --violet: #a78bfa;
+
+  --glow-pass: rgba(63, 207, 142, 0.14);
+  --glow-fail: rgba(255, 95, 86, 0.16);
+  --glow-accent: rgba(76, 194, 255, 0.14);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-panel: var(--panel);
+  --color-panel-hi: var(--panel-hi);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-fg: var(--fg);
+  --color-fg-strong: var(--fg-strong);
+  --color-fg-dim: var(--fg-dim);
+  --color-fg-faint: var(--fg-faint);
+  --color-pass: var(--pass);
+  --color-pass-dim: var(--pass-dim);
+  --color-fail: var(--fail);
+  --color-fail-dim: var(--fail-dim);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-warn: var(--warn);
+  --color-violet: var(--violet);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+
+html {
+  color-scheme: dark;
+  background: var(--bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-feature-settings: "calt" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+/* Ambient depth: a slow radial wash + fine grain so the black reads as a
+   surface rather than an absence. Purely decorative, pointer-transparent. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(90rem 60rem at 18% -10%, rgba(76, 194, 255, 0.055), transparent 60%),
+    radial-gradient(70rem 50rem at 100% 105%, rgba(167, 139, 250, 0.045), transparent 62%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: rgba(76, 194, 255, 0.28);
+  color: var(--fg-strong);
+}
+
+/* ------------------------------------------------------------------ */
+/* Scrollbars                                                          */
+/* ------------------------------------------------------------------ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #2a313d;
+  background-clip: content-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Focus                                                               */
+/* ------------------------------------------------------------------ */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion                                                              */
+/* ------------------------------------------------------------------ */
+
+@keyframes line-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes blink {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  49%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.animate-line-in {
+  animation: line-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 260ms ease-out both;
+}
+.animate-rise-in {
+  animation: rise-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-blink {
+  animation: blink 1.05s step-end infinite;
+}
+.animate-pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
+/* The thin progress shimmer on the runner bar. */
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  width: 33%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(76, 194, 255, 0.55),
+    transparent
+  );
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .shimmer::after {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Print — recruiters print things. Give them a real résumé.           */
+/* ------------------------------------------------------------------ */
+
+@media print {
+  body::before,
+  body::after {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    overflow: visible !important;
+    font-family: var(--font-sans), system-ui, sans-serif;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  a {
+    color: #111 !important;
+    text-decoration: none;
+  }
+}
+
+.print-only {
+  display: none;
 }

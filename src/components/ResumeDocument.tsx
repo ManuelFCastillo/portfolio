@@ -1,0 +1,93 @@
+import {
+  allSpecs,
+  contact,
+  credentials,
+  profile,
+  skillGroups,
+} from "@/lib/resume";
+
+/**
+ * The résumé as plain, semantic HTML — server-rendered.
+ *
+ * Three audiences read this and never see the runner:
+ *   1. Search engines, which need real text in the initial response.
+ *   2. Screen readers, which get a clean document before the app.
+ *   3. Printers, where this becomes an actual one-page résumé.
+ */
+export function ResumeDocument() {
+  const career = allSpecs.filter((s) => s.id !== "education" && s.id !== "availability");
+
+  return (
+    <article
+      aria-label="Résumé, plain text version"
+      className="sr-only print:not-sr-only print:static print:m-0 print:h-auto print:w-auto print:overflow-visible print:p-0 print:text-[10.5pt] print:leading-snug print:text-black"
+    >
+      <header>
+        <h1 className="print:text-[20pt] print:font-bold">{profile.fullName}</h1>
+        <p className="print:text-[11pt] print:font-medium">{profile.title}</p>
+        <p className="print:text-[9.5pt]">{profile.headline}</p>
+        {/* No phone here: this block is server-rendered, so anything in it is
+            in the raw HTTP response. <Phone /> handles it client-side. */}
+        <address className="print:text-[9.5pt] print:not-italic">
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>
+          {" · "}
+          <a href={contact.linkedinUrl}>{contact.linkedin}</a>
+        </address>
+      </header>
+
+      <section>
+        <h2 className="print:mt-3 print:text-[12pt] print:font-bold print:uppercase print:tracking-wide">
+          Summary
+        </h2>
+        <p>{profile.summary}</p>
+      </section>
+
+      <section>
+        <h2 className="print:mt-3 print:text-[12pt] print:font-bold print:uppercase print:tracking-wide">
+          Skills
+        </h2>
+        <ul>
+          {skillGroups.map((g) => (
+            <li key={g.id}>
+              <strong>{g.label}:</strong> {g.items.join(", ")}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2 className="print:mt-3 print:text-[12pt] print:font-bold print:uppercase print:tracking-wide">
+          Experience
+        </h2>
+        {career.map((spec) => (
+          <div key={spec.id} className="print:mt-2">
+            <h3 className="print:text-[11pt] print:font-semibold">
+              {spec.role} — {spec.org}
+            </h3>
+            <p className="print:text-[9.5pt] print:italic">
+              {spec.location} · {spec.period}
+            </p>
+            <ul className="print:ml-4 print:list-disc">
+              {spec.tests.map((t) => (
+                <li key={t.id}>{t.note ?? t.title}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+
+      <section>
+        <h2 className="print:mt-3 print:text-[12pt] print:font-bold print:uppercase print:tracking-wide">
+          Education
+        </h2>
+        <ul>
+          {credentials.map((c) => (
+            <li key={c.degree}>
+              {c.degree}, {c.institution}, {c.location} — {c.year}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </article>
+  );
+}
