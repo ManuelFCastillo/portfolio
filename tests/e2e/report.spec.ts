@@ -29,7 +29,8 @@ test.describe("HTML report", () => {
   }) => {
     await page
       .getByTestId("overview")
-      .getByRole("button", { name: /Sorcero/ })
+      // Anchored: "Sorceror" contains "Sorcero", and so does "Sorcero: Tesseract".
+      .getByRole("button", { name: /^Sorcero Inc\./ })
       .click();
 
     const detail = page.getByTestId("spec-detail");
@@ -43,7 +44,8 @@ test.describe("HTML report", () => {
   test("an assertion expands to show its detail", async ({ page }) => {
     await page
       .getByTestId("overview")
-      .getByRole("button", { name: /Sorcero/ })
+      // Anchored: "Sorceror" contains "Sorcero", and so does "Sorcero: Tesseract".
+      .getByRole("button", { name: /^Sorcero Inc\./ })
       .click();
 
     const assertion = page.getByRole("button", { name: /Maestro end-to-end flows/ });
@@ -55,11 +57,54 @@ test.describe("HTML report", () => {
     );
   });
 
-  test("the availability spec carries the contact routes", async ({ page }) => {
-    // Overview cards are labelled by role, not by spec title.
+  test("projects are presented separately from employment", async ({ page }) => {
+    const overview = page.getByTestId("overview");
+    await expect(overview).toContainText("Experience");
+    await expect(overview).toContainText("Projects");
+    await expect(overview).toContainText("Sorceror");
+    await expect(overview).toContainText("Sorcero: Tesseract");
+  });
+
+  test("the Chrome extension project opens with its detail", async ({ page }) => {
     await page
       .getByTestId("overview")
-      .getByRole("button", { name: /Open to Senior SDET roles/ })
+      .getByRole("button", { name: /^Sorceror/ })
+      .click();
+
+    const detail = page.getByTestId("spec-detail");
+    await expect(detail).toHaveAttribute("data-spec", "sorceror");
+    await expect(detail).toContainText("Chrome extension");
+    await expect(detail).toContainText("Caching");
+
+    await detail.getByRole("button", { name: /auth token copied/ }).click();
+    await expect(detail).toContainText("manual token-fetching step");
+  });
+
+  test("the visual runner project shows its 3D stack and DR use", async ({
+    page,
+  }) => {
+    await page
+      .getByTestId("overview")
+      .getByRole("button", { name: /Tesseract/ })
+      .click();
+
+    const detail = page.getByTestId("spec-detail");
+    await expect(detail).toHaveAttribute("data-spec", "tesseract");
+    await expect(detail).toContainText("Three.js");
+    await expect(detail).toContainText("D3.js");
+    await expect(detail).toContainText("Disaster Recovery");
+
+    await detail
+      .getByRole("button", { name: /compared side by side across regions/ })
+      .click();
+    await expect(detail).toContainText("two regions");
+  });
+
+  test("the availability spec carries the contact routes", async ({ page }) => {
+    // Reached from the failing-test callout rather than a spec card.
+    await page
+      .getByTestId("overview")
+      .getByRole("button", { name: "availability.spec.ts" })
       .click();
 
     const detail = page.getByTestId("spec-detail");

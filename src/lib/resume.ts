@@ -62,6 +62,8 @@ export interface Spec {
   brief: string;
   stack: string[];
   tests: Test[];
+  /** Roles render as employment; projects render as built work. */
+  kind?: "role" | "project";
 }
 
 export interface Suite {
@@ -138,7 +140,7 @@ const sorcero: Spec = {
   location: "Remote",
   period: "2020 — Present",
   brief:
-    "Test automation across two major platforms, their mobile app, and the data pipelines underneath. Built E2E and smoke suites in Playwright and TypeScript with the QA team, extended coverage to iOS with Maestro, and pushed validation down into Airflow — including nightly pipeline runs that surface data regressions before anyone opens the product.",
+    "Test automation across two major platforms, their mobile app, and the data pipelines underneath — E2E and smoke suites in Playwright and TypeScript built with the QA team, iOS coverage in Maestro, and validation pushed down into Airflow with nightly runs over the pipelines. Where the tooling didn't exist to do that well, I built it: a Chrome extension the quality engineers used daily, and a visual runner that made disaster-recovery testing legible. Both are in the tools suite.",
   stack: [
     "Playwright",
     "TypeScript",
@@ -363,6 +365,143 @@ const emc: Spec = {
   ],
 };
 
+/* ------------------------------------------------------------------ */
+/* Tools built for the quality org                                     */
+/* ------------------------------------------------------------------ */
+
+const sorceror: Spec = {
+  id: "sorceror",
+  file: "tools/sorceror.spec.ts",
+  title: "Sorceror",
+  kind: "project",
+  role: "Sorceror — Chrome extension for regression testing",
+  org: "Internal tool · Sorcero",
+  location: "Used daily by quality engineers",
+  period: "Built in-house",
+  brief:
+    "Regression testing was slower than it needed to be for reasons that had nothing to do with testing: fetching an auth token by hand, and a product UI that hid the very numbers you needed to judge whether a test project was set up correctly. Sorceror put both a click away — an overlay on the product page itself, backed by a cache so it stayed instant, working against whichever environment you happened to be in.",
+  stack: [
+    "Chrome Extension",
+    "JavaScript",
+    "REST",
+    "Caching",
+    "Internal Tooling",
+  ],
+  tests: [
+    {
+      id: "sorceror-token",
+      title: "auth token copied to the clipboard in one click",
+      duration: 288,
+      status: "passed",
+      note: "Removed the manual token-fetching step that every quality engineer paid on every session.",
+      tags: ["Auth", "DX"],
+    },
+    {
+      id: "sorceror-overlay",
+      title: "overlay surfaces project internals the product UI never showed",
+      duration: 1466,
+      status: "passed",
+      note: "Injected an overlay onto the product page exposing what testers actually needed to see — record and article counts, stakeholder counts — none of which the product surfaced on its own.",
+      tags: ["Overlay", "DOM"],
+    },
+    {
+      id: "sorceror-ontology",
+      title: "ontology information shown directly on projects",
+      duration: 1211,
+      status: "passed",
+      note: "Surfaced the ontology backing a project alongside it, so testers could see the structure their test data was shaped by.",
+      tags: ["Ontology", "Data"],
+    },
+    {
+      id: "sorceror-manage",
+      title: "test projects sorted and managed without leaving the product",
+      duration: 1878,
+      status: "passed",
+      note: "Sorting, management and basic CRUD over the test projects themselves — the setup work happened in the same place as the testing.",
+      tags: ["CRUD", "Workflow"],
+    },
+    {
+      id: "sorceror-envs",
+      title: "works across every environment",
+      duration: 942,
+      status: "passed",
+      note: "Environment-aware, so the same extension served dev, QA, staging and production without reconfiguration.",
+      tags: ["Multi-environment"],
+    },
+    {
+      id: "sorceror-cache",
+      title: "cached responses keep the overlay instant",
+      duration: 523,
+      status: "passed",
+      note: "Caching kept the overlay fast enough that using it never cost more time than it saved.",
+      tags: ["Caching", "Performance"],
+    },
+  ],
+};
+
+const tesseract: Spec = {
+  id: "tesseract",
+  file: "tools/tesseract.spec.ts",
+  title: "Sorcero: Tesseract",
+  kind: "project",
+  role: "Tesseract — a visual Playwright runner for disaster recovery",
+  org: "Internal tool · Sorcero",
+  location: "Used for disaster-recovery testing",
+  period: "Built in-house",
+  brief:
+    "A terminal is a poor instrument for reasoning about which of many microservices is covered, healthy, and under test — especially mid disaster-recovery drill, across two regions, under time pressure. Tesseract made the system spatial: a live map of active microservices, each wired to the specs in the Playwright repo that cover it, so runs were orchestrated by pointing at the architecture instead of remembering spec paths. Every run's output was retained, which turned DR drills into a comparable history rather than a one-off.",
+  stack: [
+    "Three.js",
+    "D3.js",
+    "Playwright",
+    "TypeScript",
+    "Microservices",
+    "Disaster Recovery",
+  ],
+  tests: [
+    {
+      id: "tesseract-map",
+      title: "active microservices rendered as a live visual map",
+      duration: 3344,
+      status: "passed",
+      note: "Built with Three.js and D3.js so the running system could be seen rather than inferred from logs.",
+      tags: ["Three.js", "D3.js", "Visualization"],
+    },
+    {
+      id: "tesseract-mapping",
+      title: "each service maps to the specs that cover it",
+      duration: 2087,
+      status: "passed",
+      note: "Bound the visual topology to the actual Playwright repo, so coverage of a given service was a thing you could look at.",
+      tags: ["Playwright", "Orchestration"],
+    },
+    {
+      id: "tesseract-orchestration",
+      title: "runs orchestrated from the map instead of the command line",
+      duration: 1755,
+      status: "passed",
+      note: "Selecting services selected their specs — orchestration by architecture rather than by remembered file paths.",
+      tags: ["Orchestration", "DX"],
+    },
+    {
+      id: "tesseract-dr",
+      title: "disaster recovery compared side by side across regions",
+      duration: 4206,
+      status: "passed",
+      note: "During DR exercises, two regions could be run and read against each other directly, which is the question a DR drill is actually asking.",
+      tags: ["Disaster Recovery", "Multi-region"],
+    },
+    {
+      id: "tesseract-history",
+      title: "run history retained from each run's output",
+      duration: 1592,
+      status: "passed",
+      note: "Persisted the output of each run so drills accumulated into a record that could be compared over time.",
+      tags: ["History", "Reporting"],
+    },
+  ],
+};
+
 const education: Spec = {
   id: "education",
   file: "education/credentials.spec.ts",
@@ -455,6 +594,11 @@ export const suites: Suite[] = [
     id: "career",
     title: "career",
     specs: [sorcero, playstation, symantec, emc],
+  },
+  {
+    id: "tools",
+    title: "tools",
+    specs: [sorceror, tesseract],
   },
   {
     id: "education",
@@ -559,6 +703,19 @@ export const skillGroups: SkillGroup[] = [
     label: "Data & Messaging",
     items: ["Kafka", "PostgreSQL", "AlloyDB", "Elasticsearch"],
     coverage: { stmts: 88.9, branch: 82.5, funcs: 90.1, lines: 88.9 },
+  },
+  {
+    id: "internal-tooling",
+    file: "internal-tooling.ts",
+    label: "Internal Tooling",
+    items: [
+      "Chrome Extensions",
+      "Three.js",
+      "D3.js",
+      "Data Visualization",
+      "Developer Experience",
+    ],
+    coverage: { stmts: 92.5, branch: 87.3, funcs: 95.0, lines: 92.5 },
   },
   {
     id: "systems",

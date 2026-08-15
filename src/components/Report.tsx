@@ -257,6 +257,54 @@ function Meter({ value }: { value: number }) {
   );
 }
 
+function SpecGrid({
+  heading,
+  specs,
+  subtitle,
+}: {
+  heading: string;
+  specs: Spec[];
+  subtitle?: string;
+}) {
+  const { dispatch } = useRunner();
+  if (!specs.length) return null;
+
+  return (
+    <>
+      <h3 className="mt-10 mb-1 text-[11px] tracking-[0.12em] text-fg-faint uppercase">
+        {heading}
+      </h3>
+      {subtitle && (
+        <p className="mb-3 font-sans text-[13px] text-fg-dim">{subtitle}</p>
+      )}
+      <div className={`grid gap-2 sm:grid-cols-2 ${subtitle ? "" : "mt-3"}`}>
+        {specs.map((spec) => {
+          const failed = spec.tests.some((t) => t.status === "failed");
+          return (
+            <button
+              key={spec.id}
+              onClick={() => dispatch({ type: "OPEN_SPEC", specId: spec.id })}
+              className="group min-w-0 rounded-lg border border-line bg-panel/40 px-3.5 py-3 text-left transition-colors hover:border-accent/40 hover:bg-panel"
+            >
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${failed ? "bg-fail" : "bg-pass"}`}
+                />
+                <span className="truncate text-[13px] text-fg-strong">
+                  {spec.title}
+                </span>
+              </div>
+              <p className="mt-1 truncate text-[12px] text-fg-dim">
+                {spec.kind === "project" ? spec.stack.slice(0, 3).join(" · ") : `${spec.org} · ${spec.period}`}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 function Overview() {
   const { dispatch } = useRunner();
   return (
@@ -315,31 +363,15 @@ function Overview() {
         ))}
       </div>
 
-      <h3 className="mt-10 mb-3 text-[11px] tracking-[0.12em] text-fg-faint uppercase">
-        Specs
-      </h3>
-      <div className="grid gap-2 sm:grid-cols-2">
-        {allSpecs.map((spec) => {
-          const failed = spec.tests.some((t) => t.status === "failed");
-          return (
-            <button
-              key={spec.id}
-              onClick={() => dispatch({ type: "OPEN_SPEC", specId: spec.id })}
-              className="group min-w-0 rounded-lg border border-line bg-panel/40 px-3.5 py-3 text-left transition-colors hover:border-accent/40 hover:bg-panel"
-            >
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${failed ? "bg-fail" : "bg-pass"}`}
-                />
-                <span className="truncate text-[13px] text-fg-strong">{spec.role}</span>
-              </div>
-              <p className="mt-1 truncate text-[12px] text-fg-dim">
-                {spec.org} · {spec.period}
-              </p>
-            </button>
-          );
-        })}
-      </div>
+      <SpecGrid
+        heading="Experience"
+        specs={suites.find((s) => s.id === "career")?.specs ?? []}
+      />
+      <SpecGrid
+        heading="Projects"
+        specs={suites.find((s) => s.id === "tools")?.specs ?? []}
+        subtitle="Tooling built so the quality work above could happen."
+      />
 
       <h3 className="mt-10 mb-3 text-[11px] tracking-[0.12em] text-fg-faint uppercase">
         Education
@@ -359,8 +391,13 @@ function Overview() {
       <div className="mt-12 rounded-lg border border-fail/30 bg-fail/[0.04] px-4 py-5">
         <p className="text-[13px] text-fail">1 test is still failing.</p>
         <p className="mt-1.5 max-w-xl font-sans text-[15px] leading-relaxed text-fg">
-          <span className="text-fg-strong">availability.spec.ts</span> expects this
-          candidate to be off the market. It is currently receiving{" "}
+          <button
+            onClick={() => dispatch({ type: "OPEN_SPEC", specId: "availability" })}
+            className="font-mono text-fg-strong underline decoration-fail/40 underline-offset-4 transition-colors hover:text-fail"
+          >
+            availability.spec.ts
+          </button>{" "}
+          expects this candidate to be off the market. It is currently receiving{" "}
           <span className="text-fail">&quot;available immediately&quot;</span>.
         </p>
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">

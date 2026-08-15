@@ -1,9 +1,9 @@
 import {
-  allSpecs,
   contact,
   credentials,
   profile,
   skillGroups,
+  suites,
 } from "@/lib/resume";
 
 /**
@@ -15,7 +15,10 @@ import {
  *   3. Printers, where this becomes an actual one-page résumé.
  */
 export function ResumeDocument() {
-  const career = allSpecs.filter((s) => s.id !== "education" && s.id !== "availability");
+  // Driven by the suites themselves, so a new suite can't silently land in
+  // the wrong section the way an id blacklist allowed.
+  const career = suites.find((s) => s.id === "career")?.specs ?? [];
+  const projects = suites.find((s) => s.id === "tools")?.specs ?? [];
 
   return (
     <article
@@ -66,6 +69,25 @@ export function ResumeDocument() {
             </h3>
             <p className="print:text-[9.5pt] print:italic">
               {spec.location} · {spec.period}
+            </p>
+            <ul className="print:ml-4 print:list-disc">
+              {spec.tests.map((t) => (
+                <li key={t.id}>{t.note ?? t.title}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+
+      <section>
+        <h2 className="print:mt-3 print:text-[12pt] print:font-bold print:uppercase print:tracking-wide">
+          Projects
+        </h2>
+        {projects.map((spec) => (
+          <div key={spec.id} className="print:mt-2">
+            <h3 className="print:text-[11pt] print:font-semibold">{spec.role}</h3>
+            <p className="print:text-[9.5pt] print:italic">
+              {spec.org} · {spec.stack.join(", ")}
             </p>
             <ul className="print:ml-4 print:list-disc">
               {spec.tests.map((t) => (

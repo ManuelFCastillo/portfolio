@@ -50,6 +50,21 @@ test.describe("command line", () => {
     }
   });
 
+  test("ls lists the tools suite alongside career", async ({ page }) => {
+    await runCommand(page, "ls tools");
+    const out = terminal(page);
+    await expect(out).toContainText("tools/sorceror.spec.ts");
+    await expect(out).toContainText("tools/tesseract.spec.ts");
+  });
+
+  test("--grep reaches the project work", async ({ page }) => {
+    await runCommand(page, "test --grep tesseract");
+    await expect(page.getByTestId("run-state")).toHaveText("idle");
+    const lines = page.locator('[data-testid="test-line"]');
+    expect(await lines.count()).toBeGreaterThan(1);
+    await expect(terminal(page)).toContainText("tools/tesseract.spec.ts");
+  });
+
   test("cat resume.md prints the résumé as text", async ({ page }) => {
     await runCommand(page, "cat resume.md");
     await expect(terminal(page)).toContainText("Senior SDET with 13+ years");

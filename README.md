@@ -46,6 +46,16 @@ and the server-rendered semantic résumé all read from it. Add a bullet by addi
 
 Test titles are written as **assertions** — present tense, no "responsible for."
 
+Specs are grouped into suites, and section placement is driven by the suite a spec
+belongs to rather than by an id blacklist, so a new suite can't silently land in the
+wrong part of the résumé:
+
+- **`career/`** — employment. Renders as Experience.
+- **`tools/`** — things built rather than jobs held (`kind: "project"`). Renders as
+  Projects, keyed on stack rather than dates.
+- **`education/`**, **`availability/`** — their own sections; `availability` holds the
+  one deliberately failing assertion.
+
 ## Architecture
 
 ```
@@ -75,7 +85,7 @@ Three audiences never see the runner and are all handled deliberately:
 
 ## The suite that tests this site
 
-The runner on the page is a dramatisation. **This** is the real thing: 49 Playwright
+The runner on the page is a dramatisation. **This** is the real thing: 54 Playwright
 tests × 2 projects (desktop Chrome, Pixel 7), run by GitHub Actions on every push.
 The badge above is its actual conclusion, and so is the one in the site's status bar —
 type `ci` in the terminal for the detail.
