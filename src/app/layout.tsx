@@ -94,7 +94,8 @@ function JsonLd() {
     alternateName: profile.fullName,
     jobTitle: profile.title,
     description: profile.summary,
-    email: `mailto:${contact.email}`,
+    // No email here: structured data is the easiest thing in the world to
+    // scrape. `sameAs` carries the contact signal for search engines instead.
     url: SITE,
     sameAs: [contact.linkedinUrl],
     knowsAbout: skillGroups.flatMap((g) => g.items),

@@ -56,6 +56,9 @@ try {
   // The runner chrome is display:none under print; ResumeDocument is shown.
   await page.emulateMedia({ media: "print" });
   await page.waitForSelector("article", { state: "attached" });
+  // The address is decoded client-side, so printing before hydration would
+  // bake the mask into the résumé.
+  await page.waitForSelector('[data-testid="email-link"]', { state: "attached" });
   await page.waitForFunction(() => document.fonts.ready.then(() => true));
 
   mkdirSync("public", { recursive: true });

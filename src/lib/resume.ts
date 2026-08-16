@@ -88,7 +88,9 @@ export interface Profile {
 }
 
 export interface Contact {
-  email: string;
+  // No `email` here either — it lives obfuscated in `src/lib/email.ts` and is
+  // rendered by <Email />, which decodes on mount. LinkedIn stays in the clear:
+  // it is a URL, not something a harvester can mail.
   linkedin: string;
   linkedinUrl: string;
   // No `phone` here on purpose. It lives obfuscated in `src/lib/phone.ts` and
@@ -153,7 +155,6 @@ export const profile: Profile = {
 export const RESUME_PDF = "/manny-castillo-resume.pdf";
 
 export const contact: Contact = {
-  email: "Manuel.Franklin.Castillo@gmail.com",
   linkedin: "linkedin.com/in/manuelfcastillo",
   linkedinUrl: "https://linkedin.com/in/manuelfcastillo",
 };
@@ -887,11 +888,9 @@ const availability: Spec = {
           { n: 15, text: "  });" },
           { n: 16, text: "" },
         ],
-        // The phone is appended by the renderer via <Phone />, not listed here.
-        trace: [
-          { label: contact.email, href: `mailto:${contact.email}` },
-          { label: contact.linkedin, href: contact.linkedinUrl },
-        ],
+        // Email and phone are appended by the renderer via <Email /> and
+        // <Phone />; only the LinkedIn URL is safe to hold as plain data.
+        trace: [{ label: contact.linkedin, href: contact.linkedinUrl }],
       },
     },
   ],

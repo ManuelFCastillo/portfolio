@@ -11,6 +11,7 @@ import {
 import type { Line, Tone } from "@/lib/runner";
 import { useRunner } from "@/lib/runner-context";
 import { CiReport } from "./CiStatus";
+import { Email } from "./Email";
 import { Phone } from "./Phone";
 import { REPO_URL } from "@/lib/ci";
 
@@ -180,6 +181,9 @@ function FailureBlock({ testId }: { testId: string }) {
               </li>
             ))}
             <li>
+              <Email className="text-accent underline decoration-accent/30 underline-offset-4 transition-colors hover:text-fg-strong hover:decoration-accent" />
+            </li>
+            <li>
               <Phone />
             </li>
           </ul>
@@ -252,7 +256,6 @@ function Coverage() {
 
 function Contact() {
   const rows = [
-    { k: "email", v: contact.email, href: `mailto:${contact.email}` },
     { k: "linkedin", v: contact.linkedin, href: contact.linkedinUrl },
     { k: "résumé", v: "download (PDF)", href: RESUME_PDF },
     { k: "location", v: "Austin, TX · Remote", href: null },
@@ -260,6 +263,10 @@ function Contact() {
   ];
   return (
     <div className="animate-fade-in my-2 space-y-1">
+      <div className="flex gap-3">
+        <span className="w-20 shrink-0 text-fg-faint">email</span>
+        <Email className="text-accent underline decoration-accent/30 underline-offset-4 hover:text-fg-strong" />
+      </div>
       <div className="flex gap-3">
         <span className="w-20 shrink-0 text-fg-faint">phone</span>
         <Phone />

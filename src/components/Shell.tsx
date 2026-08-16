@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { allTests, contact, profile, totals } from "@/lib/resume";
+import { allTests, profile, totals } from "@/lib/resume";
 import { useRunner } from "@/lib/runner-context";
 import { REPO_URL } from "@/lib/ci";
 import { CiBadge } from "./CiStatus";
+import { Email } from "./Email";
 import { Desktop } from "./desktop/Desktop";
 import { Report } from "./Report";
 
@@ -162,12 +163,7 @@ export function Shell() {
             </a>
             <span className="hidden sm:inline">⌘K view</span>
             <span className="hidden sm:inline">Esc skip</span>
-            <a
-              href={`mailto:${contact.email}`}
-              className="hidden text-fg-dim transition-colors hover:text-accent md:inline"
-            >
-              {contact.email}
-            </a>
+            <Email className="hidden text-fg-dim transition-colors hover:text-accent md:inline" />
           </span>
         </div>
       </footer>

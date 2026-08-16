@@ -21,6 +21,8 @@ test.describe("search engines", () => {
     expect(html).toContain("Sorcero");
     expect(html).toContain("University of Massachusetts");
     expect(html).toContain("Playwright");
+    // LinkedIn stays in the clear and carries the contact signal.
+    expect(html).toContain("linkedin.com/in/manuelfcastillo");
   });
 
   test("structured data identifies a Person", async ({ request, baseURL }) => {
@@ -109,8 +111,6 @@ test.describe("phone number is not harvestable", () => {
     const html = await (await request.get(baseURL!)).text();
     expect(html).not.toMatch(SEPARATED);
     expect(html).not.toContain("tel:");
-    // The routes he does want used are deliberately in the clear.
-    expect(html).toContain("Manuel.Franklin.Castillo@gmail.com");
   });
 
   test("revealing it gives a person a working tel: link", async ({ page }) => {
@@ -153,6 +153,42 @@ test.describe("phone number is not harvestable", () => {
     expect(body, "leaked into the DOM before the click").not.toContain(digits);
     expect(body).not.toContain("tel:");
     await fresh.close();
+  });
+});
+
+/**
+ * The address is decoded client-side. A person sees an ordinary one-click
+ * mailto link; a harvester fetching HTML sees nothing to collect.
+ */
+test.describe("email is reachable but not harvestable", () => {
+  const EMAIL_SHAPED = /[\w.+-]+@[\w-]+\.[\w.]+/;
+
+  test("no address in the server response", async ({ request, baseURL }) => {
+    const html = await (await request.get(baseURL!)).text();
+    const found = html.match(new RegExp(EMAIL_SHAPED, "g")) ?? [];
+    expect(
+      found,
+      `email-shaped strings in the server HTML: ${JSON.stringify([...new Set(found)])}`,
+    ).toHaveLength(0);
+    expect(html).not.toContain("mailto:");
+  });
+
+  test("a person gets a working one-click mailto link", async ({ page }) => {
+    await page.goto("/");
+    const link = page.getByTestId("email-link").first();
+    await expect(link).toBeVisible();
+
+    const href = await link.getAttribute("href");
+    expect(href).toMatch(/^mailto:[\w.+-]+@[\w-]+\.[\w.]+$/);
+    // No gesture needed: it resolves on load, unlike the phone number.
+    await expect(link).toContainText("@");
+  });
+
+  test("the résumé PDF still carries the address", async ({ request }) => {
+    const res = await request.get("/manny-castillo-resume.pdf");
+    expect(res.status()).toBe(200);
+    // A résumé without an email is useless; this one is meant to be downloaded.
+    expect((await res.body()).length).toBeGreaterThan(1000);
   });
 });
 

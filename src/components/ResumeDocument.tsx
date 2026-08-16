@@ -1,3 +1,4 @@
+import { Email } from "./Email";
 import {
   contact,
   credentials,
@@ -39,10 +40,10 @@ export function ResumeDocument() {
         <h1 className="print:text-[20pt] print:font-bold">{profile.name}</h1>
         <p className="print:text-[11pt] print:font-medium">{profile.title}</p>
         <p className="print:text-[9.5pt]">{profile.headline}</p>
-        {/* No phone here: this block is server-rendered, so anything in it is
-            in the raw HTTP response. <Phone /> handles it client-side. */}
+        {/* Server-rendered, so anything literal here lands in the raw HTTP
+            response. Email and phone are client components for that reason. */}
         <address className="print:text-[9.5pt] print:not-italic">
-          <a href={`mailto:${contact.email}`}>{contact.email}</a>
+          <Email />
           {" · "}
           <a href={contact.linkedinUrl}>{contact.linkedin}</a>
         </address>

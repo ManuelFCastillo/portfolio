@@ -15,6 +15,7 @@ import {
 } from "@/lib/resume";
 import { useRunner } from "@/lib/runner-context";
 import { fmt } from "./Lines";
+import { Email } from "./Email";
 import { Phone } from "./Phone";
 
 /** Flags work a reader cannot click through to. */
@@ -192,6 +193,7 @@ function TestRow({ test, specId }: { test: Test; specId: string }) {
                     {t.label}
                   </a>
                 ))}
+                <Email className="text-[13px] text-accent underline decoration-accent/30 underline-offset-4 hover:text-fg-strong" />
                 <Phone className="text-[13px]" />
               </div>
             </div>
@@ -364,12 +366,10 @@ function Overview() {
         >
           Download résumé (PDF)
         </a>
-        <a
-          href={`mailto:${contact.email}`}
+        <Email
+          label="Email"
           className="rounded border border-line px-3 py-1.5 font-sans text-[13px] text-fg-dim transition-colors hover:border-accent/40 hover:text-accent"
-        >
-          Email
-        </a>
+        />
         <a
           href={contact.linkedinUrl}
           target="_blank"
@@ -470,12 +470,7 @@ function Overview() {
           <span className="text-fail">&quot;available immediately&quot;</span>.
         </p>
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-          <a
-            href={`mailto:${contact.email}`}
-            className="rounded border border-accent/40 bg-accent/10 px-3 py-1.5 text-[13px] text-accent transition-colors hover:bg-accent/20"
-          >
-            {contact.email}
-          </a>
+          <Email className="rounded border border-accent/40 bg-accent/10 px-3 py-1.5 text-[13px] text-accent transition-colors hover:bg-accent/20" />
           <a
             href={contact.linkedinUrl}
             target="_blank"
