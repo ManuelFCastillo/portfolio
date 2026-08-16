@@ -14,6 +14,16 @@ import {
  *   2. Screen readers, which get a clean document before the app.
  *   3. Printers, where this becomes an actual one-page résumé.
  */
+/**
+ * Assertion titles are written lowercase for the runner ("owns an 800+ test
+ * suite"). In a résumé they are bullets, so they get sentence-cased and
+ * terminated — otherwise a spec without a note reads as a fragment.
+ */
+function asBullet(text: string): string {
+  const s = text.charAt(0).toUpperCase() + text.slice(1);
+  return /[.!?]$/.test(s) ? s : `${s}.`;
+}
+
 export function ResumeDocument() {
   // Driven by the suites themselves, so a new suite can't silently land in
   // the wrong section the way an id blacklist allowed.
@@ -72,7 +82,7 @@ export function ResumeDocument() {
             </p>
             <ul className="print:ml-4 print:list-disc">
               {spec.tests.map((t) => (
-                <li key={t.id}>{t.note ?? t.title}</li>
+                <li key={t.id}>{asBullet(t.note ?? t.title)}</li>
               ))}
             </ul>
           </div>
@@ -91,7 +101,7 @@ export function ResumeDocument() {
             </p>
             <ul className="print:ml-4 print:list-disc">
               {spec.tests.map((t) => (
-                <li key={t.id}>{t.note ?? t.title}</li>
+                <li key={t.id}>{asBullet(t.note ?? t.title)}</li>
               ))}
             </ul>
           </div>

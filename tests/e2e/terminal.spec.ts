@@ -67,7 +67,7 @@ test.describe("command line", () => {
 
   test("cat resume.md prints the résumé as text", async ({ page }) => {
     await runCommand(page, "cat resume.md");
-    await expect(terminal(page)).toContainText("Senior SDET with 13+ years");
+    await expect(terminal(page)).toContainText(/Senior SDET with \d+\+ years/);
   });
 
   test("coverage renders the skills table", async ({ page }) => {

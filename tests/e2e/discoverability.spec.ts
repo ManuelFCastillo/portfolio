@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { runCommand } from "./helpers";
+import { ensureTerminal, runCommand } from "./helpers";
 
 /**
  * Three audiences never see the runner: search engines, screen readers, and
@@ -43,7 +43,7 @@ test.describe("search engines", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Manny Castillo.*Senior Software Engineer in Test/);
     const desc = page.locator('meta[name="description"]');
-    await expect(desc).toHaveAttribute("content", /Senior SDET with 13\+ years/);
+    await expect(desc).toHaveAttribute("content", /Senior SDET with \d+\+ years/);
   });
 });
 
@@ -59,6 +59,8 @@ test.describe("assistive technology", () => {
 
   test("the command input is labelled", async ({ page }) => {
     await page.goto("/");
+    // The terminal is not mounted until opened, so this must open it first.
+    await ensureTerminal(page);
     await expect(
       page.getByRole("textbox", { name: /command input/i }),
     ).toBeAttached();
@@ -68,6 +70,7 @@ test.describe("assistive technology", () => {
     page,
   }) => {
     await page.goto("/");
+    await ensureTerminal(page);
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("run-state")).toHaveText("idle");
 
@@ -163,10 +166,8 @@ test.describe("layout", () => {
 
     // Regression: the specs grid overflowed on narrow viewports because grid
     // items default to min-width:auto, defeating `truncate`.
-    for (const view of ["terminal", "report"] as const) {
-      if (view === "report") {
-        await page.getByTestId("tab-report").click();
-      }
+    for (const view of ["report", "terminal"] as const) {
+      await page.getByTestId(`tab-${view}`).click();
       const overflow = await page.evaluate(() => {
         const el = document.scrollingElement!;
         return el.scrollWidth - el.clientWidth;

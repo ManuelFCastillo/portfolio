@@ -45,11 +45,12 @@ jobs:
       # Publishes the real result into public/, then rebuilds so the deployable
       # output carries it. The badge on the site then costs zero API calls and
       # cannot be rate-limited for visitors behind a shared IP.
-      - name: Publish CI status into the site
+      - name: Publish CI status and résumé PDF into the site
         if: ${{ !cancelled() }}
         run: |
           node scripts/ci-status.mjs
           cat public/ci-status.json
+          npm run resume:pdf
           npm run build
 
       - name: Upload deployable build

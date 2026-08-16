@@ -98,7 +98,10 @@ export const initialState: RunnerState = {
   status: pendingStatus(),
   activeSpecId: null,
   activeTestId: null,
-  view: "terminal",
+  // The report leads: most visitors want to read, not watch a demo. The run
+  // still plays inside it — assertions tick from pending to passed live — so
+  // the concept survives without gating the résumé behind a performance.
+  view: "report",
   history: [],
   hasRun: false,
   lastFilter: null,

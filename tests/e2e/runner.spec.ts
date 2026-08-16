@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { settleRun, terminal } from "./helpers";
+import { ensureTerminal, settleRun, terminal } from "./helpers";
 
 test.describe("suite execution", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
+    // The report is the landing view; these assert on runner output.
+    await ensureTerminal(page);
   });
 
   test("runs itself on load and reaches a settled state", async ({ page }) => {
@@ -84,6 +86,7 @@ test.describe("reduced motion", () => {
     // Must be emulated before the app mounts and reads the media query.
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
+    await ensureTerminal(page);
     // No Escape press here — the preference alone must settle it.
     await expect(page.getByTestId("run-state")).toHaveText("idle");
     await expect(page.getByTestId("summary")).toBeVisible();

@@ -132,7 +132,7 @@ test.describe("badge, falling back to the Actions API", () => {
     await expect(badge).toHaveAttribute("data-ci-state", "unavailable");
     // The rest of the page must still work.
     await settleRun(page);
-    await expect(page.getByTestId("summary")).toBeVisible();
+    await expect(page.getByTestId("overview")).toBeVisible();
   });
 
   test("survives a network failure", async ({ page }) => {
@@ -145,7 +145,7 @@ test.describe("badge, falling back to the Actions API", () => {
       "unavailable",
     );
     await settleRun(page);
-    await expect(page.getByTestId("summary")).toBeVisible();
+    await expect(page.getByTestId("overview")).toBeVisible();
   });
 });
 

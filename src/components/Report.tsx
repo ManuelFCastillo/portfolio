@@ -2,9 +2,11 @@
 
 import {
   allSpecs,
+  allTests,
   contact,
   credentials,
   profile,
+  RESUME_PDF,
   skillGroups,
   suites,
   totals,
@@ -306,7 +308,11 @@ function SpecGrid({
 }
 
 function Overview() {
-  const { dispatch } = useRunner();
+  const { state, dispatch } = useRunner();
+  // Live, not static: the counts climb while the suite runs behind this view.
+  const ran = allTests.filter((t) => state.status[t.id] !== "pending");
+  const passed = ran.filter((t) => t.status === "passed").length;
+  const failed = ran.filter((t) => t.status === "failed").length;
   return (
     <div
       data-testid="overview"
@@ -318,10 +324,43 @@ function Overview() {
       </h2>
       <p className="mt-1.5 font-sans text-[15px] text-fg-dim">{profile.title}</p>
 
+      {/* The two things a visitor most likely wants, before anything else. */}
+      <div className="mt-5 flex flex-wrap items-center gap-2.5">
+        <a
+          href={RESUME_PDF}
+          download
+          data-testid="resume-download"
+          className="rounded border border-accent/40 bg-accent/10 px-3 py-1.5 font-sans text-[13px] text-accent transition-colors hover:bg-accent/20"
+        >
+          Download résumé (PDF)
+        </a>
+        <a
+          href={`mailto:${contact.email}`}
+          className="rounded border border-line px-3 py-1.5 font-sans text-[13px] text-fg-dim transition-colors hover:border-accent/40 hover:text-accent"
+        >
+          Email
+        </a>
+        <a
+          href={contact.linkedinUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded border border-line px-3 py-1.5 font-sans text-[13px] text-fg-dim transition-colors hover:border-accent/40 hover:text-accent"
+        >
+          LinkedIn
+        </a>
+        <button
+          onClick={() => dispatch({ type: "SET_VIEW", view: "terminal" })}
+          data-testid="open-terminal-cta"
+          className="rounded border border-line px-3 py-1.5 font-sans text-[13px] text-fg-dim transition-colors hover:border-accent/40 hover:text-accent"
+        >
+          Open the terminal →
+        </button>
+      </div>
+
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "passed", value: totals.passed, tone: "text-pass" },
-          { label: "failed", value: totals.failed, tone: "text-fail" },
+          { label: "passed", value: passed, tone: "text-pass" },
+          { label: "failed", value: failed, tone: "text-fail" },
           { label: "specs", value: totals.specs, tone: "text-fg-strong" },
           { label: "years", value: profile.yearsExperience, tone: "text-fg-strong" },
         ].map((s) => (

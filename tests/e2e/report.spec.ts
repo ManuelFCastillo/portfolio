@@ -1,5 +1,45 @@
 import { expect, test } from "@playwright/test";
-import { openReport, openTerminal, runCommand, settleRun, terminal } from "./helpers";
+import { ensureTerminal, openReport, openTerminal, runCommand, settleRun, terminal } from "./helpers";
+
+test.describe("landing", () => {
+  test("the report is what a visitor lands on, not the terminal", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByTestId("overview")).toBeVisible();
+    await expect(page.getByTestId("tab-report")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    // The runner is still executing behind it — the concept isn't lost.
+    await expect(page.getByTestId("run-state")).toHaveText("running");
+  });
+
+  test("the terminal is one click away", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("open-terminal-cta").click();
+    await expect(
+      page.getByRole("textbox", { name: /command input/i }),
+    ).toBeVisible();
+  });
+
+  test("the résumé is downloadable as a real PDF", async ({ page, request }) => {
+    await page.goto("/");
+    const link = page.getByTestId("resume-download");
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute("download", "");
+
+    const href = await link.getAttribute("href");
+    const res = await request.get(href!);
+    expect(res.status(), "the linked PDF must actually exist").toBe(200);
+    expect(res.headers()["content-type"]).toContain("pdf");
+
+    // A PDF that leaks the phone number would undo src/lib/phone.ts.
+    const body = (await res.body()).toString("latin1");
+    expect(body).not.toContain("512-368-6300");
+    expect(body).not.toContain("5123686300");
+  });
+});
 
 test.describe("HTML report", () => {
   test.beforeEach(async ({ page }) => {
@@ -36,7 +76,7 @@ test.describe("HTML report", () => {
     const detail = page.getByTestId("spec-detail");
     await expect(detail).toHaveAttribute("data-spec", "sorcero");
     await expect(detail).toContainText("Sorcero Inc.");
-    await expect(detail).toContainText("2020 — Present");
+    await expect(detail).toContainText("2020 — 2026");
     await expect(detail).toContainText("Maestro");
     await expect(detail).toContainText("Assertions");
   });
@@ -151,6 +191,7 @@ test.describe("shared state between surfaces", () => {
   test("clicking an assertion in the terminal opens it in the report", async ({
     page,
   }) => {
+    await ensureTerminal(page);
     await page
       .locator('[data-testid="test-line"][data-status="failed"]')
       .click();

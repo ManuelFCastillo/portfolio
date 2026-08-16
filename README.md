@@ -85,7 +85,7 @@ Three audiences never see the runner and are all handled deliberately:
 
 ## The suite that tests this site
 
-The runner on the page is a dramatisation. **This** is the real thing: 54 Playwright
+The runner on the page is a dramatisation. **This** is the real thing: 57 Playwright
 tests × 2 projects (desktop Chrome, Pixel 7), run by GitHub Actions on every push.
 The badge above is its actual conclusion, and so is the one in the site's status bar —
 type `ci` in the terminal for the detail.

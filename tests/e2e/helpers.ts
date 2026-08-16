@@ -14,7 +14,17 @@ export async function settleRun(page: Page) {
   await expect(page.getByTestId("run-state")).toHaveText("idle");
 }
 
+/** The report is the landing view, so the terminal has to be opened first. */
+export async function ensureTerminal(page: Page) {
+  const input = prompt(page);
+  if (!(await input.isVisible().catch(() => false))) {
+    await page.getByTestId("tab-terminal").click();
+    await expect(input).toBeVisible();
+  }
+}
+
 export async function runCommand(page: Page, command: string) {
+  await ensureTerminal(page);
   const input = prompt(page);
   await input.click();
   await input.fill(command);

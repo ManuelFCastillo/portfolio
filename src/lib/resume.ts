@@ -111,15 +111,40 @@ export interface Credential {
 /* Profile                                                             */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Summed from the career periods below rather than hardcoded, so it can't go
+ * stale the way "13+ years" did when the Sorcero end date moved to 2026.
+ * Sums actual tenure (14) rather than the 2011-2026 span (15) — the gap
+ * between EMC and Symantec is real and shouldn't be counted.
+ */
+function yearsOfExperience(periods: string[]): number {
+  return periods.reduce((total, period) => {
+    const [start, end] = period.split(/\s*[\u2014-]\s*/).map((p) => parseInt(p, 10));
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return total;
+    return total + Math.max(0, end - start);
+  }, 0);
+}
+
+const CAREER_PERIODS = ["2020 \u2014 2026", "2015 \u2014 2020", "2014 \u2014 2015", "2011 \u2014 2013"];
+export const YEARS_EXPERIENCE = yearsOfExperience(CAREER_PERIODS);
+
 export const profile: Profile = {
   name: "Manny Castillo",
   fullName: "Manuel Castillo",
   title: "Senior Software Engineer in Test",
-  headline: "Web UI Test Automation · Playwright · TypeScript · CI/CD",
+  headline:
+    "Backend & API Test Automation · Data Pipelines · Python · Distributed Systems · CI/CD",
   summary:
-    "Senior SDET with 13+ years building end-to-end, smoke, and API test automation for customer-facing web applications and large-scale distributed systems. Hands-on owner of an 800+ test Playwright suite, with a track record of designing test frameworks and tooling, increasing automated coverage, and reducing release risk across enterprise SaaS and cybersecurity products.",
-  yearsExperience: 13,
+    `Senior SDET with ${YEARS_EXPERIENCE}+ years testing backend services, data pipelines, and large-scale distributed systems. API and integration automation in Python, Airflow pipeline validation with nightly runs, and performance work against the services underneath — plus the web and mobile E2E layer on top of it in Playwright and Maestro. Builds the test frameworks and internal tooling other engineers depend on, across enterprise SaaS, gaming infrastructure, storage, and cybersecurity.`,
+  yearsExperience: YEARS_EXPERIENCE,
 };
+
+/**
+ * Generated from this site's own print view by scripts/resume-pdf.mjs, so it
+ * stays in sync with the data below and — unlike the hand-maintained PDF —
+ * carries no phone number for crawlers to extract.
+ */
+export const RESUME_PDF = "/manny-castillo-resume.pdf";
 
 export const contact: Contact = {
   email: "Manuel.Franklin.Castillo@gmail.com",
@@ -135,40 +160,116 @@ const sorcero: Spec = {
   id: "sorcero",
   file: "career/sorcero.spec.ts",
   title: "Sorcero Inc.",
-  role: "Senior Software Engineer in Test (UI & Test Automation)",
+  role: "Lead SDET, Medical Team — Backend, Pipeline & UI Automation",
   org: "Sorcero Inc.",
   location: "Remote",
-  period: "2020 — Present",
+  period: "2020 — 2026",
   brief:
-    "Test automation across two major platforms, their mobile app, and the data pipelines underneath — E2E and smoke suites in Playwright and TypeScript built with the QA team, iOS coverage in Maestro, and validation pushed down into Airflow with nightly runs over the pipelines. Where the tooling didn't exist to do that well, I built it: a Chrome extension the quality engineers used daily, and a visual runner that made disaster-recovery testing legible. Both are in the tools suite.",
+    "Lead SDET for the Medical Team on Sorcero's flagship product, owning test strategy and automation across the stack. Most of the weight sat behind the UI: API and integration coverage over the microservices, Airflow pipeline validation in Google Cloud Composer with nightly runs, ML and LLM output validation for the MLOps team, and distributed execution on Kubernetes. Also led the CI/CD tooling migration from GitHub Actions to GitLab CI, and owned the web and mobile E2E layer on top in Playwright and Maestro.",
   stack: [
-    "Playwright",
-    "TypeScript",
-    "Maestro",
-    "iOS",
     "Python",
+    "pytest",
     "Airflow",
     "Google Cloud Composer",
+    "Kubernetes",
     "GitLab CI",
+    "GitHub Actions",
     "Jenkins",
     "JMeter",
     "Locust",
+    "Grafana",
+    "TypeScript",
+    "Playwright",
+    "Maestro",
+    "iOS",
   ],
   tests: [
+    {
+      id: "sorcero-lead",
+      title: "Lead SDET for the Medical Team on the flagship product",
+      duration: 2410,
+      status: "passed",
+      note: "Owned test strategy and end-to-end automation for the Medical Team, and mentored engineers across teams.",
+      tags: ["Leadership", "Test Strategy", "Mentoring"],
+    },
+    {
+      id: "sorcero-api",
+      title: "API and integration tests cover the services behind the product",
+      duration: 2688,
+      status: "passed",
+      note: "Automation reaching past the browser into the REST and GraphQL services, so failures are attributed to the layer that actually broke.",
+      tags: ["API Testing", "REST", "GraphQL", "Microservices"],
+    },
+    {
+      id: "sorcero-airflow",
+      title: "Airflow DAG tests validate data pipelines end to end",
+      duration: 3104,
+      status: "passed",
+      note: "Tests asserting that Airflow DAGs running in Google Cloud Composer transform and land the data the product depends on — not just that the pipeline ran, but that what came out the other side was correct.",
+      tags: ["Airflow", "Google Cloud Composer", "Data Validation"],
+    },
+    {
+      id: "sorcero-nightly",
+      title: "nightly pipeline runs surface data regressions before users do",
+      duration: 3688,
+      status: "passed",
+      note: "Scheduled nightly validation against the data pipelines, so breakages introduced during the day are caught overnight and triaged in the morning instead of being discovered in the product.",
+      tags: ["Nightly", "Data Validation"],
+    },
+    {
+      id: "sorcero-mlops",
+      title: "ML and LLM output validation owned for the MLOps team",
+      duration: 3927,
+      status: "passed",
+      note: "Owned validation of model and LLM outputs for the MLOps team — non-deterministic results need a different testing approach than an assert on a fixed value. Also integrated LLM-assisted tooling into day-to-day test engineering.",
+      tags: ["ML/LLM Validation", "MLOps", "Non-deterministic Testing"],
+    },
+    {
+      id: "sorcero-k8s",
+      title: "distributed test execution runs across Kubernetes",
+      duration: 2955,
+      status: "passed",
+      note: "Moved suite execution onto Kubernetes so runs scale horizontally instead of serialising on one machine.",
+      tags: ["Kubernetes", "Distributed Execution"],
+    },
+    {
+      id: "sorcero-cicd",
+      title: "CI/CD tooling migrated from GitHub Actions to GitLab CI",
+      duration: 3142,
+      status: "passed",
+      note: "Led the migration to GitLab CI with secure workflows, and wired the suites to execute as part of deployment — on a dedicated dev/QA environment during development, then again on each promotion to staging and to production. The suites gated those promotions in practice: a release waited on a clean run, enforced as a process step rather than as an automated block in the pipeline.",
+      tags: ["GitLab CI", "GitHub Actions", "Jenkins", "CI/CD"],
+    },
+    {
+      id: "sorcero-perf",
+      title: "Python performance tooling surfaces system bottlenecks",
+      duration: 2213,
+      status: "passed",
+      note: "JMeter and Locust tooling in Python identifying front-end and back-end bottlenecks, feeding directly into optimization work.",
+      tags: ["JMeter", "Locust", "Python", "Reliability"],
+    },
+    {
+      id: "sorcero-grafana",
+      title: "Grafana dashboards and automated failure triage cut investigation time",
+      duration: 1804,
+      status: "passed",
+      note: "Dashboards plus automated triage workflows, so a red run arrives with a first guess at why rather than a wall of logs.",
+      tags: ["Grafana", "Observability", "Failure Triage"],
+    },
     {
       id: "sorcero-suite",
       title: "800+ test Playwright suite covers two major platforms",
       duration: 2847,
       status: "passed",
-      note: "Built and maintained end-to-end and UI smoke coverage in TypeScript across two major customer-facing platforms, working alongside the QA team rather than in isolation.",
-      tags: ["Playwright", "TypeScript"],
+      note: "End-to-end and UI smoke coverage in TypeScript across two major customer-facing platforms, built alongside the QA team rather than in isolation, replacing a manual regression pass that consumed hours every release cycle.",
+      tags: ["Playwright", "TypeScript", "E2E"],
     },
     {
       id: "sorcero-mobile",
       title: "iOS mobile app covered by Maestro end-to-end flows",
       duration: 2611,
       status: "passed",
-      note: "Extended automated coverage past the browser to the native mobile app, writing E2E flows for iOS in Maestro so mobile regressions surface in the same cycle as web.",
+      note: "Extended automated coverage to the native mobile app, writing E2E flows for iOS in Maestro so mobile regressions surface in the same cycle as web.",
       tags: ["Maestro", "iOS", "Mobile E2E"],
     },
     {
@@ -177,47 +278,7 @@ const sorcero: Spec = {
       duration: 1932,
       status: "passed",
       note: "The full smoke suite runs against core platform functionality on each release, covering the paths a user hits first.",
-      tags: ["E2E", "Smoke"],
-    },
-    {
-      id: "sorcero-manual",
-      title: "replaces several hours of manual validation each cycle",
-      duration: 412,
-      status: "passed",
-      note: "Automation absorbed the manual regression pass that previously consumed hours of engineer time on every single release cycle.",
-      tags: ["Regression"],
-    },
-    {
-      id: "sorcero-airflow",
-      title: "Airflow DAG tests validate data pipelines end to end",
-      duration: 3104,
-      status: "passed",
-      note: "Authored API and integration tests that reach past the browser into the orchestration layer, asserting that Airflow DAGs running in Google Cloud Composer transform and land the data the product depends on — not just that the pipeline ran, but that what came out the other side was correct.",
-      tags: ["Airflow", "Google Cloud Composer", "API Testing"],
-    },
-    {
-      id: "sorcero-nightly",
-      title: "nightly pipeline runs surface data regressions before users do",
-      duration: 3688,
-      status: "passed",
-      note: "Scheduled nightly validation against the data pipelines, so breakages introduced during the day are caught overnight and triaged in the morning instead of being discovered in the product.",
-      tags: ["Nightly", "Data Validation", "Airflow"],
-    },
-    {
-      id: "sorcero-ci",
-      title: "suites run in GitLab CI and Jenkins on every deployment",
-      duration: 1544,
-      status: "passed",
-      note: "Wired into GitLab CI and Jenkins so the suites execute automatically as part of deployment — on a dedicated dev/QA environment during development, then again on each promotion to staging and to production.",
-      tags: ["GitLab CI", "Jenkins", "CI/CD"],
-    },
-    {
-      id: "sorcero-perf",
-      title: "JMeter and Locust tooling surfaces system bottlenecks",
-      duration: 2213,
-      status: "passed",
-      note: "Python-based performance tooling identifies front-end and back-end bottlenecks and feeds directly into optimization work.",
-      tags: ["JMeter", "Locust", "Python"],
+      tags: ["Smoke", "Regression"],
     },
   ],
 };
@@ -231,23 +292,50 @@ const playstation: Spec = {
   location: "Austin, TX",
   period: "2015 — 2020",
   brief:
-    "Five years building the test infrastructure other QA teams ran on. Internal Python frameworks, a dashboard test runner, and reliability metrics — plus large-scale migration testing as PlayStation Now expanded its datacenter footprint.",
-  stack: ["Python", "Go", "AWS", "Prometheus", "Linux", "Distributed Systems"],
+    "Five years on the test infrastructure other teams ran on. Wrote pytest-based tests and test infrastructure in Daruma — Sony's in-house Python framework — covering microservices across the PlayStation Now service platform, including datacenter streaming validation. Built AWS automation to stand up and validate game streams against new European datacenters ahead of launch.",
+  stack: [
+    "Python",
+    "pytest",
+    "Daruma",
+    "AWS",
+    "boto3",
+    "Go",
+    "Prometheus",
+    "Microservices",
+    "Distributed Systems",
+  ],
   tests: [
     {
-      id: "ps-frameworks",
-      title: "internal Python test frameworks adopted across QA teams",
+      id: "ps-daruma",
+      title: "Daruma, Sony's in-house Python test framework, supports teams across QA and SRE",
       duration: 2456,
       status: "passed",
-      note: "Built and enhanced test frameworks and reusable helper libraries that became shared infrastructure for automated testing org-wide.",
-      tags: ["Python"],
+      note: "Built and enhanced Daruma with reusable helper libraries and AWS tooling; it became shared infrastructure for automated testing beyond the immediate team.",
+      tags: ["Python", "Daruma", "Frameworks"],
     },
     {
-      id: "ps-aws",
-      title: "tooling integrates with AWS for automated test execution",
-      duration: 1187,
+      id: "ps-microservices",
+      title: "pytest suites cover microservices across the PlayStation Now platform",
+      duration: 3218,
       status: "passed",
-      tags: ["AWS", "EC2", "S3"],
+      note: "Wrote pytest-based tests and the test infrastructure around them for microservices spanning the PlayStation Now service platform, including datacenter streaming validation.",
+      tags: ["pytest", "Microservices", "Streaming"],
+    },
+    {
+      id: "ps-boto3",
+      title: "AWS automation spins up and validates game streams in new datacenters",
+      duration: 3760,
+      status: "passed",
+      note: "boto3 automation to provision and validate live game streams against new European datacenters ahead of launch.",
+      tags: ["AWS", "boto3", "EC2", "Automation"],
+    },
+    {
+      id: "ps-migration",
+      title: "European launch validated ahead of 700,000+ concurrent users",
+      duration: 4021,
+      status: "passed",
+      note: "Led QA initiatives supporting SRE through large-scale datacenter migration testing for the expansion of PlayStation Now infrastructure, validating capacity ahead of launch to 700,000+ concurrent users.",
+      tags: ["SRE", "Scale", "Migration"],
     },
     {
       id: "ps-dashboard",
@@ -255,15 +343,7 @@ const playstation: Spec = {
       duration: 3390,
       status: "passed",
       note: "Designed the backend architecture for an in-house dashboard test runner — the system QA teams used to launch suites and read results.",
-      tags: ["Python", "Architecture"],
-    },
-    {
-      id: "ps-migration",
-      title: "datacenter migration testing supports SRE at scale",
-      duration: 4021,
-      status: "passed",
-      note: "Led QA initiatives supporting SRE teams through large-scale datacenter migration testing for the expansion of PlayStation Now infrastructure.",
-      tags: ["SRE", "Distributed Systems"],
+      tags: ["Python", "Architecture", "Backend"],
     },
     {
       id: "ps-prometheus",
@@ -330,22 +410,38 @@ const emc: Spec = {
   location: "Hopkinton, MA",
   period: "2011 — 2013",
   brief:
-    "Where the automation habit started: hardware validation and regression testing for enterprise storage platforms, driven by Python frameworks and Jenkins.",
-  stack: ["Python", "Jenkins", "Linux", "Storage"],
+    "Where the automation habit started, and the only role on this list where the system under test was physical: enterprise storage hardware validated in the lab with Python automation, down to thermal dwell testing on the enclosures themselves.",
+  stack: [
+    "Python",
+    "Jenkins",
+    "Linux",
+    "Enterprise Storage",
+    "Hardware Validation",
+  ],
   tests: [
     {
       id: "emc-hardware",
-      title: "hardware validation and regression testing on enterprise storage",
+      title: "SLICs, DAEs, DPEs and storage processors validated with Python automation",
       duration: 2603,
       status: "passed",
-      tags: ["Regression"],
+      note: "Hardware validation and regression testing across SLICs (I/O modules), DAEs (disk array enclosures), DPEs (disk processor enclosures) and storage processors, driven by Python automation frameworks.",
+      tags: ["Storage", "Hardware Validation", "Python"],
     },
     {
-      id: "emc-python",
-      title: "Python automation frameworks drive platform validation",
-      duration: 1428,
+      id: "emc-dwell",
+      title: "cold and hot dwell environmental testing passes",
+      duration: 3480,
       status: "passed",
-      tags: ["Python"],
+      note: "Environmental and thermal dwell testing on enterprise storage enclosures — validating hardware behaviour across temperature extremes, not just software behaviour.",
+      tags: ["Environmental Testing", "Thermal"],
+    },
+    {
+      id: "emc-jenkins",
+      title: "Jenkins extended with custom Python plugins",
+      duration: 1109,
+      status: "passed",
+      note: "Modified Jenkins plugins in Python to make the build system support the validation workflows the lab needed.",
+      tags: ["Jenkins", "Python"],
     },
     {
       id: "emc-linux",
@@ -353,14 +449,6 @@ const emc: Spec = {
       duration: 771,
       status: "passed",
       tags: ["Linux"],
-    },
-    {
-      id: "emc-jenkins",
-      title: "Jenkins extended with custom Python plugin modifications",
-      duration: 1109,
-      status: "passed",
-      note: "Modified Jenkins plugins in Python to make the build system do what the test strategy required.",
-      tags: ["Jenkins", "Python"],
     },
   ],
 };
@@ -547,11 +635,11 @@ const availability: Spec = {
   period: "Now",
   brief:
     "One assertion in this suite does not pass. It is the only one that is supposed to be fixed by someone other than me.",
-  stack: ["Playwright", "TypeScript", "Python", "CI/CD"],
+  stack: ["Python", "pytest", "API Testing", "Airflow", "Kubernetes", "CI/CD"],
   tests: [
     {
       id: "avail-experience",
-      title: "candidate has 13+ years of software quality experience",
+      title: `candidate has ${YEARS_EXPERIENCE}+ years of software quality experience`,
       duration: 512,
       status: "passed",
       tags: ["Verified"],
@@ -624,8 +712,95 @@ export const skillGroups: SkillGroup[] = [
     id: "languages",
     file: "languages.ts",
     label: "Languages",
-    items: ["Python", "TypeScript", "JavaScript", "Bash"],
+    items: ["Python", "TypeScript", "JavaScript", "Go", "Bash"],
     coverage: { stmts: 97.4, branch: 94.1, funcs: 100, lines: 97.4 },
+  },
+  {
+    id: "backend-api",
+    file: "backend-api-testing.ts",
+    label: "Backend & API Testing",
+    items: [
+      "pytest",
+      "API Testing",
+      "REST",
+      "GraphQL",
+      "Integration Testing",
+      "Microservices Testing",
+      "Postman",
+      "Test Plans & Strategy",
+    ],
+    coverage: { stmts: 99.1, branch: 96.4, funcs: 100, lines: 99.1 },
+  },
+  {
+    id: "data-pipelines",
+    file: "data-pipelines.ts",
+    label: "Data & Pipelines",
+    items: [
+      "Airflow",
+      "Google Cloud Composer",
+      "Data Pipeline Validation",
+      "Nightly Regression Runs",
+      "Kafka",
+      "PostgreSQL",
+      "AlloyDB",
+      "Elasticsearch",
+    ],
+    coverage: { stmts: 96.8, branch: 92.7, funcs: 98.4, lines: 96.8 },
+  },
+  {
+    id: "ml-llm",
+    file: "ml-llm-validation.ts",
+    label: "ML & LLM Validation",
+    items: [
+      "ML/LLM Output Validation",
+      "MLOps Support",
+      "Non-deterministic Testing",
+      "LLM-Assisted Test Engineering",
+    ],
+    coverage: { stmts: 93.6, branch: 89.2, funcs: 95.8, lines: 93.6 },
+  },
+  {
+    id: "cloud",
+    file: "cloud-infra.ts",
+    label: "Cloud & Infrastructure",
+    items: [
+      "AWS (EC2, S3, Lambda, boto3)",
+      "Google Cloud",
+      "Kubernetes",
+      "Docker",
+      "Linux",
+      "Distributed Systems",
+    ],
+    coverage: { stmts: 95.2, branch: 90.8, funcs: 96.7, lines: 95.2 },
+  },
+  {
+    id: "performance",
+    file: "performance-reliability.ts",
+    label: "Performance & Reliability",
+    items: [
+      "JMeter",
+      "Locust",
+      "Grafana",
+      "Prometheus",
+      "Benchmarking",
+      "Metrics Analysis",
+      "Automated Failure Triage",
+    ],
+    coverage: { stmts: 95.9, branch: 91.4, funcs: 97.2, lines: 95.9 },
+  },
+  {
+    id: "cicd",
+    file: "cicd-devops.ts",
+    label: "CI/CD & DevOps",
+    items: [
+      "GitLab CI/CD",
+      "GitHub Actions",
+      "Jenkins",
+      "Git",
+      "Secure Workflows",
+      "Distributed Test Execution",
+    ],
+    coverage: { stmts: 97.3, branch: 93.6, funcs: 98.8, lines: 97.3 },
   },
   {
     id: "web-ui-testing",
@@ -651,60 +826,6 @@ export const skillGroups: SkillGroup[] = [
     coverage: { stmts: 93.2, branch: 88.7, funcs: 95.5, lines: 93.2 },
   },
   {
-    id: "test-tooling",
-    file: "test-tooling.ts",
-    label: "Test Tooling & API",
-    items: [
-      "Postman",
-      "pytest",
-      "API Testing",
-      "Data Pipeline Validation",
-      "Nightly Regression Runs",
-      "Test Plans & Strategy",
-    ],
-    coverage: { stmts: 98.1, branch: 95.0, funcs: 100, lines: 98.1 },
-  },
-  {
-    id: "performance",
-    file: "performance.ts",
-    label: "Performance & Validation",
-    items: [
-      "JMeter",
-      "Locust",
-      "Grafana",
-      "Prometheus",
-      "Benchmarking",
-      "Metrics Analysis",
-    ],
-    coverage: { stmts: 91.8, branch: 86.4, funcs: 94.7, lines: 91.8 },
-  },
-  {
-    id: "cicd",
-    file: "cicd-devops.ts",
-    label: "CI/CD & DevOps",
-    items: ["Git", "GitLab CI/CD", "Jenkins", "Docker", "Kubernetes"],
-    coverage: { stmts: 95.6, branch: 91.9, funcs: 97.2, lines: 95.6 },
-  },
-  {
-    id: "cloud",
-    file: "cloud-infra.ts",
-    label: "Cloud & Infrastructure",
-    items: [
-      "AWS (EC2, S3, Lambda)",
-      "Google Cloud",
-      "Linux",
-      "Distributed Systems",
-    ],
-    coverage: { stmts: 90.3, branch: 84.2, funcs: 92.8, lines: 90.3 },
-  },
-  {
-    id: "data",
-    file: "data-messaging.ts",
-    label: "Data & Messaging",
-    items: ["Kafka", "PostgreSQL", "AlloyDB", "Elasticsearch"],
-    coverage: { stmts: 88.9, branch: 82.5, funcs: 90.1, lines: 88.9 },
-  },
-  {
     id: "internal-tooling",
     file: "internal-tooling.ts",
     label: "Internal Tooling",
@@ -719,9 +840,16 @@ export const skillGroups: SkillGroup[] = [
   },
   {
     id: "systems",
-    file: "systems.ts",
-    label: "Systems",
-    items: ["Debugging", "Root Cause Analysis", "Reliability Testing"],
+    file: "hardware-systems.ts",
+    label: "Hardware & Systems Validation",
+    items: [
+      "Enterprise Storage (SLIC, DAE, DPE, SP)",
+      "Environmental Dwell Testing",
+      "VMware ESXi",
+      "Debugging",
+      "Root Cause Analysis",
+      "Reliability Testing",
+    ],
     coverage: { stmts: 99.2, branch: 96.8, funcs: 100, lines: 99.2 },
   },
 ];

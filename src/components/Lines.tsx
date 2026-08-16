@@ -1,6 +1,13 @@
 "use client";
 
-import { allSpecs, allTests, contact, profile, skillGroups } from "@/lib/resume";
+import {
+  allSpecs,
+  allTests,
+  contact,
+  profile,
+  RESUME_PDF,
+  skillGroups,
+} from "@/lib/resume";
 import type { Line, Tone } from "@/lib/runner";
 import { useRunner } from "@/lib/runner-context";
 import { CiReport } from "./CiStatus";
@@ -247,6 +254,7 @@ function Contact() {
   const rows = [
     { k: "email", v: contact.email, href: `mailto:${contact.email}` },
     { k: "linkedin", v: contact.linkedin, href: contact.linkedinUrl },
+    { k: "résumé", v: "download (PDF)", href: RESUME_PDF },
     { k: "location", v: "Austin, TX · Remote", href: null },
     { k: "status", v: "Available immediately", href: null },
   ];
@@ -284,6 +292,13 @@ function ResumeText() {
       <div>
         <p className="text-fg-strong"># {profile.fullName}</p>
         <p className="text-fg-dim">{profile.title}</p>
+        <a
+          href={RESUME_PDF}
+          download
+          className="text-accent underline decoration-accent/30 underline-offset-4 hover:text-fg-strong"
+        >
+          download as PDF →
+        </a>
       </div>
       <p className="leading-relaxed text-fg">{profile.summary}</p>
       {career.map((s) => (
