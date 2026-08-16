@@ -207,7 +207,7 @@ function TestRow({ test, specId }: { test: Test; specId: string }) {
   );
 }
 
-function SpecDetail({ spec }: { spec: Spec }) {
+export function SpecDetail({ spec }: { spec: Spec }) {
   const { dispatch } = useRunner();
   const failed = spec.tests.filter((t) => t.status === "failed").length;
   const passed = spec.tests.length - failed;

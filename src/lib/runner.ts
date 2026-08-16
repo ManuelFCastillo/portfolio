@@ -341,11 +341,13 @@ function execute(input: string): ExecResult {
       return {
         queue: [
           {
-            line: { kind: "text", text: `Opening trace for ${spec.file}…`, tone: "dim" },
+            line: { kind: "text", text: `Opening ${spec.file}…`, tone: "dim" },
             delay: 90,
           },
         ],
-        patch: { view: "report", activeSpecId: spec.id, activeTestId: null },
+        // No view change: the desktop opens it in a window, the report shows
+        // it inline. Yanking the visitor to another tab was the old behaviour.
+        patch: { activeSpecId: spec.id, activeTestId: null },
       };
     }
 
@@ -387,9 +389,9 @@ function execute(input: string): ExecResult {
       if (spec) {
         return {
           queue: [
-            { line: { kind: "text", text: `Opening trace for ${spec.file}…`, tone: "dim" }, delay: 90 },
+            { line: { kind: "text", text: `Opening ${spec.file}…`, tone: "dim" }, delay: 90 },
           ],
-          patch: { view: "report", activeSpecId: spec.id, activeTestId: null },
+          patch: { activeSpecId: spec.id, activeTestId: null },
         };
       }
       return {

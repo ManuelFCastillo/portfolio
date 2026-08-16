@@ -83,8 +83,9 @@ export function Files() {
       windows({ type: "OPEN", id: "terminal" });
       return;
     }
+    // Opens in the desktop, not by teleporting to another tab.
     dispatch({ type: "OPEN_SPEC", specId: entry.specId });
-    dispatch({ type: "SET_VIEW", view: "report" });
+    windows({ type: "OPEN", id: "spec" });
   }
 
   function download(entry: Entry) {

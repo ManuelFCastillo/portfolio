@@ -14,13 +14,22 @@ export async function settleRun(page: Page) {
   await expect(page.getByTestId("run-state")).toHaveText("idle");
 }
 
-/** The report is the landing view, so the terminal has to be opened first. */
+/**
+ * The report is the landing view, so the terminal has to be opened first —
+ * and on phones it is one of several stacked windows behind a switcher, so
+ * selecting the Terminal tab is not always enough on its own.
+ */
 export async function ensureTerminal(page: Page) {
   const input = prompt(page);
-  if (!(await input.isVisible().catch(() => false))) {
-    await page.getByTestId("tab-terminal").click();
-    await expect(input).toBeVisible();
+  if (await input.isVisible().catch(() => false)) return;
+
+  await page.getByTestId("tab-terminal").click();
+
+  const mobileTab = page.getByTestId("mobile-tab-terminal");
+  if (await mobileTab.isVisible().catch(() => false)) {
+    await mobileTab.click();
   }
+  await expect(input).toBeVisible();
 }
 
 export async function runCommand(page: Page, command: string) {
@@ -41,5 +50,5 @@ export async function openReport(page: Page) {
 }
 
 export async function openTerminal(page: Page) {
-  await page.getByTestId("tab-terminal").click();
+  await ensureTerminal(page);
 }

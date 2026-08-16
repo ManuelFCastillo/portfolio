@@ -19,7 +19,11 @@ import {
   type ReactNode,
 } from "react";
 
-export type WindowId = "terminal" | "files" | "resume";
+/** Below these a window has no usable content area left. */
+export const MIN_W = 280;
+export const MIN_H = 180;
+
+export type WindowId = "terminal" | "files" | "resume" | "spec";
 
 export interface WindowState {
   id: WindowId;
@@ -47,10 +51,11 @@ type Action =
   | { type: "MINIMIZE"; id: WindowId }
   | { type: "RESTORE"; id: WindowId }
   | { type: "TOGGLE_MAX"; id: WindowId }
-  | { type: "MOVE"; id: WindowId; x: number; y: number };
+  | { type: "MOVE"; id: WindowId; x: number; y: number }
+  | { type: "RESIZE"; id: WindowId; w: number; h: number };
 
 const initial: State = {
-  topZ: 3,
+  topZ: 4,
   order: ["files", "terminal"],
   windows: {
     files: {
@@ -74,6 +79,18 @@ const initial: State = {
       h: 500,
       z: 2,
       open: true,
+      minimized: false,
+      maximized: false,
+    },
+    spec: {
+      id: "spec",
+      title: "spec",
+      x: 300,
+      y: 96,
+      w: 700,
+      h: 520,
+      z: 4,
+      open: false,
       minimized: false,
       maximized: false,
     },
@@ -130,6 +147,18 @@ function reducer(state: State, action: Action): State {
         windows: {
           ...state.windows,
           [action.id]: { ...win, x: action.x, y: action.y },
+        },
+      };
+    case "RESIZE":
+      return {
+        ...state,
+        windows: {
+          ...state.windows,
+          [action.id]: {
+            ...win,
+            w: Math.max(MIN_W, action.w),
+            h: Math.max(MIN_H, action.h),
+          },
         },
       };
     default:

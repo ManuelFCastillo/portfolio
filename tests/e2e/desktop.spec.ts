@@ -79,6 +79,61 @@ test.describe("windowed desktop", () => {
     await expect(files).toBeHidden();
   });
 
+  test("a window can be resized by its corner", async ({ page }) => {
+    const win = page.getByTestId("window-terminal");
+    const before = (await win.boundingBox())!;
+
+    const handle = win.getByTestId("resize-se");
+    const h = (await handle.boundingBox())!;
+    await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(h.x + 160, h.y + 90, { steps: 10 });
+    await page.mouse.up();
+
+    const after = (await win.boundingBox())!;
+    expect(after.width).toBeGreaterThan(before.width + 80);
+    expect(after.height).toBeGreaterThan(before.height + 40);
+  });
+
+  test("a window cannot be resized into uselessness", async ({ page }) => {
+    const win = page.getByTestId("window-files");
+    const handle = win.getByTestId("resize-se");
+    const h = (await handle.boundingBox())!;
+    await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(h.x - 900, h.y - 900, { steps: 10 });
+    await page.mouse.up();
+
+    const box = (await win.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(279);
+    expect(box.height).toBeGreaterThanOrEqual(179);
+  });
+
+  /** Opening a file used to teleport the visitor to the Report tab. */
+  test("opening a spec file keeps you on the desktop", async ({ page }) => {
+    await page.getByTestId("window-files").getByText("tesseract.spec.ts").click();
+
+    await expect(page.getByTestId("window-spec")).toBeVisible();
+    await expect(page.getByTestId("desktop")).toBeVisible();
+    // Still on the terminal tab — no tab switch happened.
+    await expect(page.getByTestId("tab-terminal")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(page.getByTestId("spec-detail")).toHaveAttribute(
+      "data-spec",
+      "tesseract",
+    );
+  });
+
+  test("the spec window title follows the open file", async ({ page }) => {
+    await page.getByTestId("window-files").getByText("emc.spec.ts").click();
+    await expect(page.getByTestId("window-spec")).toHaveAttribute(
+      "aria-label",
+      "career/emc.spec.ts",
+    );
+  });
+
   test("a window can be dragged by its title bar", async ({ page }) => {
     const win = page.getByTestId("window-terminal");
     const before = (await win.boundingBox())!;
@@ -151,13 +206,44 @@ test.describe("no windows on a phone", () => {
     "only meaningful at phone widths",
   );
 
-  test("the terminal renders plain and full-bleed", async ({ page }) => {
+  test("windows become a switcher instead of draggable chrome", async ({
+    page,
+  }) => {
     await page.goto("/");
     await settleRun(page);
     await ensureTerminal(page);
 
-    await expect(page.getByTestId("terminal-output")).toBeVisible();
+    // No draggable window chrome at this width.
     await expect(page.getByTestId("desktop")).toHaveCount(0);
     await expect(page.getByTestId("window-terminal")).toHaveCount(0);
+
+    // But Files and the résumé are still reachable, which the old
+    // terminal-only fallback lost entirely.
+    await expect(page.getByTestId("mobile-switcher")).toBeVisible();
+    await expect(page.getByTestId("mobile-tab-terminal")).toBeVisible();
+    await expect(page.getByTestId("mobile-tab-files")).toBeVisible();
+    await expect(page.getByTestId("terminal-output")).toBeVisible();
+  });
+
+  test("switching to Files and opening a spec stays in the switcher", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await settleRun(page);
+    await ensureTerminal(page);
+
+    await page.getByTestId("mobile-tab-files").click();
+    await expect(page.getByTestId("file-entry").first()).toBeVisible();
+
+    await page.getByText("tesseract.spec.ts").click();
+    await expect(page.getByTestId("spec-detail")).toHaveAttribute(
+      "data-spec",
+      "tesseract",
+    );
+    // Still the Terminal tab — no teleport to the Report.
+    await expect(page.getByTestId("tab-terminal")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 });

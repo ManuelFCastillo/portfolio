@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, type ReactNode } from "react";
-import { useWindows, type WindowId } from "@/lib/windows";
+import { MIN_H, MIN_W, useWindows, type WindowId } from "@/lib/windows";
 
 /** macOS-style traffic light. Labelled, because a bare coloured dot is not a button. */
 function Light({
@@ -33,13 +33,16 @@ export function Window({
   id,
   children,
   bodyClassName = "",
+  title,
 }: {
   id: WindowId;
   children: ReactNode;
   bodyClassName?: string;
+  /** Overrides the stored title — the spec window follows whatever is open. */
+  title?: string;
 }) {
   const { state, dispatch } = useWindows();
-  const win = state.windows[id];
+  const win = { ...state.windows[id], title: title ?? state.windows[id].title };
   const dragRef = useRef<{ dx: number; dy: number } | null>(null);
 
   const onPointerDown = useCallback(
@@ -140,6 +143,62 @@ export function Window({
       <div className={`min-h-0 flex-1 overflow-hidden ${bodyClassName}`}>
         {children}
       </div>
+
+      {!win.maximized && (
+        <>
+          <Resizer id={id} edge="e" />
+          <Resizer id={id} edge="s" />
+          <Resizer id={id} edge="se" />
+        </>
+      )}
     </section>
+  );
+}
+
+/** Drag-to-resize. Right edge, bottom edge, and the corner. */
+function Resizer({ id, edge }: { id: WindowId; edge: "e" | "s" | "se" }) {
+  const { state, dispatch } = useWindows();
+  const win = state.windows[id];
+  const from = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  const position = {
+    e: "top-0 right-0 h-full w-1.5 cursor-ew-resize",
+    s: "bottom-0 left-0 h-1.5 w-full cursor-ns-resize",
+    se: "bottom-0 right-0 h-3.5 w-3.5 cursor-nwse-resize",
+  }[edge];
+
+  return (
+    <div
+      role="separator"
+      aria-label={`Resize ${win.title}`}
+      data-testid={`resize-${edge}`}
+      className={`absolute ${position} touch-none select-none`}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        from.current = { x: e.clientX, y: e.clientY, w: win.w, h: win.h };
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        dispatch({ type: "FOCUS", id });
+      }}
+      onPointerMove={(e) => {
+        const f = from.current;
+        if (!f) return;
+        dispatch({
+          type: "RESIZE",
+          id,
+          w: edge === "s" ? f.w : Math.max(MIN_W, f.w + (e.clientX - f.x)),
+          h: edge === "e" ? f.h : Math.max(MIN_H, f.h + (e.clientY - f.y)),
+        });
+      }}
+      onPointerUp={() => {
+        from.current = null;
+      }}
+      onPointerCancel={() => {
+        from.current = null;
+      }}
+    >
+      {edge === "se" && (
+        <span className="absolute right-[3px] bottom-[3px] h-1.5 w-1.5 border-r border-b border-fg-faint/60" />
+      )}
+    </div>
   );
 }
