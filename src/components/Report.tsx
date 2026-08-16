@@ -408,7 +408,7 @@ function Overview() {
       />
       <SpecGrid
         heading="Projects"
-        specs={suites.find((s) => s.id === "tools")?.specs ?? []}
+        specs={suites.find((s) => s.id === "projects")?.specs ?? []}
         subtitle="Tooling built so the quality work above could happen."
       />
 

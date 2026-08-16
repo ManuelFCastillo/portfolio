@@ -50,11 +50,12 @@ test.describe("command line", () => {
     }
   });
 
-  test("ls lists the tools suite alongside career", async ({ page }) => {
-    await runCommand(page, "ls tools");
+  test("ls lists the projects suite alongside career", async ({ page }) => {
+    await runCommand(page, "ls projects");
     const out = terminal(page);
-    await expect(out).toContainText("tools/sorceror.spec.ts");
-    await expect(out).toContainText("tools/tesseract.spec.ts");
+    for (const f of ["sorceror", "tesseract", "ask-the-library", "fare"]) {
+      await expect(out).toContainText(`projects/${f}.spec.ts`);
+    }
   });
 
   test("--grep reaches the project work", async ({ page }) => {
@@ -62,7 +63,7 @@ test.describe("command line", () => {
     await expect(page.getByTestId("run-state")).toHaveText("idle");
     const lines = page.locator('[data-testid="test-line"]');
     expect(await lines.count()).toBeGreaterThan(1);
-    await expect(terminal(page)).toContainText("tools/tesseract.spec.ts");
+    await expect(terminal(page)).toContainText("projects/tesseract.spec.ts");
   });
 
   test("cat resume.md prints the résumé as text", async ({ page }) => {

@@ -454,12 +454,12 @@ const emc: Spec = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Tools built for the quality org                                     */
+/* Projects — internal tooling first, then personal work               */
 /* ------------------------------------------------------------------ */
 
 const sorceror: Spec = {
   id: "sorceror",
-  file: "tools/sorceror.spec.ts",
+  file: "projects/sorceror.spec.ts",
   title: "Sorceror",
   kind: "project",
   role: "Sorceror — Chrome extension for regression testing",
@@ -529,7 +529,7 @@ const sorceror: Spec = {
 
 const tesseract: Spec = {
   id: "tesseract",
-  file: "tools/tesseract.spec.ts",
+  file: "projects/tesseract.spec.ts",
   title: "Sorcero: Tesseract",
   kind: "project",
   role: "Tesseract — a visual Playwright runner for disaster recovery",
@@ -586,6 +586,182 @@ const tesseract: Spec = {
       status: "passed",
       note: "Persisted the output of each run so drills accumulated into a record that could be compared over time.",
       tags: ["History", "Reporting"],
+    },
+  ],
+};
+
+const askTheLibrary: Spec = {
+  id: "ask-the-library",
+  file: "projects/ask-the-library.spec.ts",
+  title: "Ask the Library",
+  kind: "project",
+  role: "Ask the Library — self-hosted AI reading platform over 50,000 books",
+  org: "Personal project",
+  location: "Two-node home lab",
+  period: "In progress",
+  brief:
+    "A self-hosted RAG platform over a 50,700-book Project Gutenberg mirror — 7.5M passages, FastAPI backend, Elasticsearch kNN vector search on local embeddings, and streaming citation-grounded answers from self-hosted LLMs across a two-node home lab. Zero cloud APIs. Two React front-ends ship against the one API, an agentic ingestion pipeline gates what gets in, and a Stable Diffusion pipeline restores unusable cover scans. The testing on it is layered the way production systems need: a deterministic offline suite for speed, and a live smoke suite against real infrastructure that has already caught degradation before users did.",
+  stack: [
+    "Python",
+    "FastAPI",
+    "Elasticsearch",
+    "kNN Vector Search",
+    "RAG",
+    "Ollama",
+    "React",
+    "TypeScript",
+    "Playwright",
+    "Docker",
+    "Stable Diffusion",
+  ],
+  tests: [
+    {
+      id: "atl-deterministic",
+      title: "deterministic Playwright suite runs offline in under five seconds",
+      duration: 4812,
+      status: "passed",
+      note: "Eleven specs covering browse → search → detail → reader, made deterministic by intercepting at the network layer and serving fixtures. No infrastructure required, so it never flakes on a cold GPU or a slow index.",
+      tags: ["Playwright", "Network Mocking", "Determinism"],
+    },
+    {
+      id: "atl-smoke",
+      title: "live smoke suite catches production degradation before users do",
+      duration: 3944,
+      status: "passed",
+      note: "A second layer pointed at real infrastructure — vector search, LLM generation, the media pipeline — with environment-switchable targets for post-deploy verification. It caught GPU contention starving the search embeddings, which the offline suite by design could not.",
+      tags: ["Smoke Testing", "Post-deploy", "Observability"],
+    },
+    {
+      id: "atl-corpus",
+      title: "50,700 books and 7.5M passages indexed for vector search",
+      duration: 4402,
+      status: "passed",
+      note: "Elasticsearch kNN over locally-computed embeddings — the retrieval layer the answers are grounded in.",
+      tags: ["Elasticsearch", "Embeddings", "Scale"],
+    },
+    {
+      id: "atl-rag",
+      title: "answers stream from self-hosted models with citations, and no cloud API",
+      duration: 3620,
+      status: "passed",
+      note: "Streaming, citation-grounded Q&A served by Ollama across 14B/3B/1B tiers on a two-node home lab. Nothing is sent to a third-party API.",
+      tags: ["RAG", "Ollama", "Self-hosted", "Citations"],
+    },
+    {
+      id: "atl-latency",
+      title: "kNN cold-cache latency cut from 17s to 0.2s",
+      duration: 1740,
+      status: "passed",
+      note: "One of several infrastructure faults diagnosed end to end, alongside a CUDA/cuDNN conflict silently breaking GPU inference and request starvation from single-GPU contention.",
+      tags: ["Performance", "Root Cause Analysis", "CUDA"],
+    },
+    {
+      id: "atl-ingestion",
+      title: "ingestion agent gates new books behind three quality checks",
+      duration: 3288,
+      status: "passed",
+      note: "Public-domain acquisition from the Internet Archive filtered by OCR word-ratio heuristics, perceptual-hash detection of scanner boilerplate, and an LLM sniff test — with on-demand AI cleanup of the OCR text that survives.",
+      tags: ["Agents", "Data Quality", "OCR"],
+    },
+    {
+      id: "atl-covers",
+      title: "unusable cover scans are detected and regenerated",
+      duration: 4126,
+      status: "passed",
+      note: "Covers scored by Laplacian variance and a vision model, then regenerated through Stable Diffusion on a local GPU — with a before/after debug page that recomputes the scores client-side so every automated keep-or-replace decision can be audited. It exposed two classifier blind spots that became fixes.",
+      tags: ["Computer Vision", "Stable Diffusion", "Auditability"],
+    },
+    {
+      id: "atl-frontends",
+      title: "two React front-ends ship against one API",
+      duration: 2870,
+      status: "passed",
+      note: "A study-focused reader with themes, a two-page spread, a chapter-grounded chat panel and a vocabulary builder; plus a discovery UI with semantic search, token auth and saved lists.",
+      tags: ["React", "TypeScript", "Frontend"],
+    },
+  ],
+};
+
+const fare: Spec = {
+  id: "fare",
+  file: "projects/fare.spec.ts",
+  title: "Fare",
+  kind: "project",
+  role: "Fare — a rideshare app whose economics are actually fair",
+  org: "Personal project",
+  location: "In development",
+  period: "In progress",
+  brief:
+    "A rideshare platform built on the premise that the split between driver and platform should be defensible. Native iOS in Swift for the driver side, a web dispatch dashboard, and a TypeScript middleware layer over Firebase coordinating the two. Still in development — the honest status, not a shipped product.",
+  stack: [
+    "Swift",
+    "iOS",
+    "TypeScript",
+    "Firebase",
+    "Vercel",
+    "Dispatch",
+  ],
+  tests: [
+    {
+      id: "fare-ios",
+      title: "native iOS driver app built in Swift",
+      duration: 3268,
+      status: "passed",
+      tags: ["Swift", "iOS"],
+    },
+    {
+      id: "fare-dispatch",
+      title: "web dispatch dashboard coordinates drivers",
+      duration: 2740,
+      status: "passed",
+      note: "A dispatcher-facing web app alongside the driver app, so rides can be assigned and tracked from a desk.",
+      tags: ["Dispatch", "Web"],
+    },
+    {
+      id: "fare-middleware",
+      title: "TypeScript middleware sits between the apps and Firebase",
+      duration: 2196,
+      status: "passed",
+      note: "A middleware service in TypeScript rather than letting clients talk to Firebase directly — the seam where pricing and dispatch rules live.",
+      tags: ["TypeScript", "Firebase", "Backend"],
+    },
+    {
+      id: "fare-status",
+      title: "still in development",
+      duration: 612,
+      status: "passed",
+      note: "Listed as in-progress on purpose. It is a real build with real code, not a shipped product.",
+      tags: ["In Progress"],
+    },
+  ],
+};
+
+const tiengviet: Spec = {
+  id: "tiengviet",
+  file: "projects/tieng-viet.spec.ts",
+  title: "Tiếng Việt",
+  kind: "project",
+  role: "Tiếng Việt — an iOS app for learning Vietnamese",
+  org: "Personal project",
+  location: "iOS",
+  period: "In progress",
+  brief:
+    "A Vietnamese language learning app for iOS, built in Swift. It starts where most learners actually stall — the alphabet and its tone marks — rather than at vocabulary drills.",
+  stack: ["Swift", "iOS", "Language Learning"],
+  tests: [
+    {
+      id: "viet-alphabet",
+      title: "iOS app in Swift teaches the Vietnamese alphabet and tones",
+      duration: 2456,
+      status: "passed",
+      tags: ["Swift", "iOS"],
+    },
+    {
+      id: "viet-practice",
+      title: "practice is built around the sounds learners get wrong first",
+      duration: 1884,
+      status: "passed",
+      tags: ["Pedagogy", "Audio"],
     },
   ],
 };
@@ -684,9 +860,9 @@ export const suites: Suite[] = [
     specs: [sorcero, playstation, symantec, emc],
   },
   {
-    id: "tools",
-    title: "tools",
-    specs: [sorceror, tesseract],
+    id: "projects",
+    title: "projects",
+    specs: [sorceror, tesseract, askTheLibrary, fare, tiengviet],
   },
   {
     id: "education",
@@ -722,6 +898,7 @@ export const skillGroups: SkillGroup[] = [
     items: [
       "pytest",
       "API Testing",
+      "FastAPI",
       "REST",
       "GraphQL",
       "Integration Testing",
@@ -755,6 +932,9 @@ export const skillGroups: SkillGroup[] = [
       "ML/LLM Output Validation",
       "MLOps Support",
       "Non-deterministic Testing",
+      "RAG & Retrieval Grounding",
+      "Vector Search (kNN)",
+      "Self-hosted LLMs (Ollama)",
       "LLM-Assisted Test Engineering",
     ],
     coverage: { stmts: 93.6, branch: 89.2, funcs: 95.8, lines: 93.6 },

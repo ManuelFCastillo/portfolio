@@ -61,8 +61,9 @@ belongs to rather than by an id blacklist, so a new suite can't silently land in
 wrong part of the résumé:
 
 - **`career/`** — employment. Renders as Experience.
-- **`tools/`** — things built rather than jobs held (`kind: "project"`). Renders as
-  Projects, keyed on stack rather than dates.
+- **`projects/`** — things built rather than jobs held (`kind: "project"`). Renders as
+  Projects, keyed on stack rather than dates. Internal tooling first, then personal
+  work; `org` distinguishes the two.
 - **`education/`**, **`availability/`** — their own sections; `availability` holds the
   one deliberately failing assertion.
 

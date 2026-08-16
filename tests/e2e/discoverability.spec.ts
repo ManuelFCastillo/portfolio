@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { ensureTerminal, runCommand } from "./helpers";
+import { ensureTerminal, runCommand, settleRun } from "./helpers";
 
 /**
  * Three audiences never see the runner: search engines, screen readers, and
@@ -72,8 +72,7 @@ test.describe("assistive technology", () => {
   }) => {
     await page.goto("/");
     await ensureTerminal(page);
-    await page.keyboard.press("Escape");
-    await expect(page.getByTestId("run-state")).toHaveText("idle");
+    await settleRun(page);
 
     const failed = page.locator('[data-testid="test-line"][data-status="failed"]');
     await expect(failed).toHaveAttribute("aria-label", /^Failed:/);
@@ -94,8 +93,7 @@ test.describe("phone number is not harvestable", () => {
 
   /** Reveals the number once so the assertions never hardcode it. */
   async function reveal(page: Page): Promise<{ formatted: string; digits: string }> {
-    await page.keyboard.press("Escape");
-    await expect(page.getByTestId("run-state")).toHaveText("idle");
+    await settleRun(page);
     await runCommand(page, "contact");
     await page.getByTestId("phone-reveal").first().click();
     const formatted = (
@@ -146,8 +144,7 @@ test.describe("phone number is not harvestable", () => {
 
     const fresh = await page.context().newPage();
     await fresh.goto("/");
-    await fresh.keyboard.press("Escape");
-    await expect(fresh.getByTestId("run-state")).toHaveText("idle");
+    await settleRun(fresh);
     await runCommand(fresh, "contact");
     await expect(fresh.getByTestId("phone-reveal").first()).toBeVisible();
 
@@ -162,8 +159,7 @@ test.describe("phone number is not harvestable", () => {
 test.describe("layout", () => {
   test("the page never scrolls horizontally", async ({ page }) => {
     await page.goto("/");
-    await page.keyboard.press("Escape");
-    await expect(page.getByTestId("run-state")).toHaveText("idle");
+    await settleRun(page);
 
     // Regression: the specs grid overflowed on narrow viewports because grid
     // items default to min-width:auto, defeating `truncate`.

@@ -28,7 +28,7 @@ export function ResumeDocument() {
   // Driven by the suites themselves, so a new suite can't silently land in
   // the wrong section the way an id blacklist allowed.
   const career = suites.find((s) => s.id === "career")?.specs ?? [];
-  const projects = suites.find((s) => s.id === "tools")?.specs ?? [];
+  const projects = suites.find((s) => s.id === "projects")?.specs ?? [];
 
   return (
     <article
