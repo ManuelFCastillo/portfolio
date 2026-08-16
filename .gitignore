@@ -56,5 +56,3 @@ next-env.d.ts
 /AGENTS.md
 /CLAUDE.md
 
-# generated from the site by scripts/resume-pdf.mjs
-/public/manny-castillo-resume.pdf

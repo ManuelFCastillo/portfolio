@@ -10,7 +10,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
-    "resume:pdf": "node scripts/resume-pdf.mjs"
+    "resume:pdf": "node scripts/resume-pdf.mjs",
+    "prebuild": "node scripts/ci-status.mjs"
   },
   "dependencies": {
     "next": "16.3.1",
