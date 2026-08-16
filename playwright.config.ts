@@ -9,6 +9,13 @@ const PORT = process.env.PORT ?? "3100";
 const baseURL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
 const isCI = !!process.env.CI;
 
+/**
+ * Point BASE_URL at a deployed origin to smoke-test it:
+ *   BASE_URL=https://portfolio-nine-woad-35.vercel.app npx playwright test
+ * No local server is started in that case.
+ */
+const isRemote = !/^https?:\/\/(localhost|127\.0\.0\.1)/.test(baseURL);
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -41,11 +48,13 @@ export default defineConfig({
     { name: "mobile-chrome", use: { ...devices["Pixel 7"] } },
   ],
 
-  webServer: {
-    command: "npm run start",
-    url: baseURL,
-    reuseExistingServer: !isCI,
-    timeout: 120_000,
-    env: { PORT: String(PORT) },
-  },
+  webServer: isRemote
+    ? undefined
+    : {
+        command: "npm run start",
+        url: baseURL,
+        reuseExistingServer: !isCI,
+        timeout: 120_000,
+        env: { PORT: String(PORT) },
+      },
 });

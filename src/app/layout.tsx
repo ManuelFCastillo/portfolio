@@ -15,7 +15,19 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const SITE = "https://mannycastillo.dev";
+/**
+ * Canonical origin for metadata and JSON-LD.
+ *
+ * Vercel sets VERCEL_PROJECT_PRODUCTION_URL to the project's production domain
+ * at build time — and updates it to a custom domain once one is attached — so
+ * pointing a real domain at this project needs no code change. The literal is
+ * only a fallback for local builds.
+ */
+const SITE =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://portfolio-nine-woad-35.vercel.app");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),

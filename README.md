@@ -1,4 +1,6 @@
-# mannycastillo.dev
+# portfolio
+
+**Live: https://portfolio-nine-woad-35.vercel.app**
 
 [![e2e](https://github.com/ManuelFCastillo/portfolio/actions/workflows/e2e.yml/badge.svg)](https://github.com/ManuelFCastillo/portfolio/actions/workflows/e2e.yml)
 
@@ -139,8 +141,14 @@ npm run dev
 
 ## Deploy
 
+Deployed on Vercel from `main`; every push redeploys. The canonical origin comes
+from `VERCEL_PROJECT_PRODUCTION_URL` at build time, so attaching a custom domain
+needs no code change.
+
+The suite can be pointed at a deployed origin to smoke-test it:
+
 ```bash
-npx vercel
+BASE_URL=https://portfolio-nine-woad-35.vercel.app npx playwright test
 ```
 
-The site is fully static (`○ prerendered as static content`), so any host works.
+No local server is started when `BASE_URL` is remote.
