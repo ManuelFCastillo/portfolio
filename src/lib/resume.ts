@@ -64,6 +64,12 @@ export interface Spec {
   tests: Test[];
   /** Roles render as employment; projects render as built work. */
   kind?: "role" | "project";
+  /**
+   * Projects only. Internal work is flagged because a reader cannot click
+   * through to it — it lives behind a former employer's login. Personal work
+   * is the default and needs no badge.
+   */
+  origin?: "internal" | "personal";
 }
 
 export interface Suite {
@@ -462,6 +468,7 @@ const sorceror: Spec = {
   file: "projects/sorceror.spec.ts",
   title: "Sorceror",
   kind: "project",
+  origin: "internal",
   role: "Sorceror — Chrome extension for regression testing",
   org: "Internal tool · Sorcero",
   location: "Used daily by quality engineers",
@@ -532,6 +539,7 @@ const tesseract: Spec = {
   file: "projects/tesseract.spec.ts",
   title: "Sorcero: Tesseract",
   kind: "project",
+  origin: "internal",
   role: "Tesseract — a visual Playwright runner for disaster recovery",
   org: "Internal tool · Sorcero",
   location: "Used for disaster-recovery testing",
@@ -902,7 +910,7 @@ export const suites: Suite[] = [
   {
     id: "projects",
     title: "projects",
-    specs: [sorceror, tesseract, askTheLibrary, fare, tiengviet],
+    specs: [askTheLibrary, fare, tiengviet, sorceror, tesseract],
   },
   {
     id: "education",

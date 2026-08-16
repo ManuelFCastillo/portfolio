@@ -17,6 +17,19 @@ import { useRunner } from "@/lib/runner-context";
 import { fmt } from "./Lines";
 import { Phone } from "./Phone";
 
+/** Flags work a reader cannot click through to. */
+function InternalBadge({ className = "" }: { className?: string }) {
+  return (
+    <span
+      data-testid="internal-badge"
+      title="Built for internal use at Sorcero — not publicly accessible"
+      className={`shrink-0 rounded border border-violet/30 bg-violet/10 px-1.5 py-0.5 text-[10px] tracking-wide text-violet uppercase ${className}`}
+    >
+      internal
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Sidebar                                                             */
 /* ------------------------------------------------------------------ */
@@ -51,6 +64,15 @@ function SpecRow({ spec }: { spec: Spec }) {
         }
       />
       <span className="min-w-0 flex-1 truncate">{spec.title}</span>
+      {spec.origin === "internal" && (
+        <span
+          aria-hidden
+          title="Internal"
+          className="shrink-0 text-[9px] tracking-wider text-violet/70 uppercase"
+        >
+          int
+        </span>
+      )}
       <span className="shrink-0 text-[11px] tabular-nums text-fg-faint">
         {spec.tests.length}
       </span>
@@ -202,7 +224,10 @@ function SpecDetail({ spec }: { spec: Spec }) {
         ← All specs
       </button>
 
-      <p className="text-[12px] text-fg-faint">{spec.file}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-[12px] text-fg-faint">{spec.file}</p>
+        {spec.origin === "internal" && <InternalBadge />}
+      </div>
       <h2 className="mt-1.5 font-sans text-2xl font-semibold tracking-tight text-fg-strong sm:text-3xl">
         {spec.role}
       </h2>
@@ -279,7 +304,11 @@ function SpecGrid({
       {subtitle && (
         <p className="mb-3 font-sans text-[13px] text-fg-dim">{subtitle}</p>
       )}
-      <div className={`grid gap-2 sm:grid-cols-2 ${subtitle ? "" : "mt-3"}`}>
+      <div
+        data-testid="spec-grid"
+        data-heading={heading.toLowerCase()}
+        className={`grid gap-2 sm:grid-cols-2 ${subtitle ? "" : "mt-3"}`}
+      >
         {specs.map((spec) => {
           const failed = spec.tests.some((t) => t.status === "failed");
           return (
@@ -295,6 +324,7 @@ function SpecGrid({
                 <span className="truncate text-[13px] text-fg-strong">
                   {spec.title}
                 </span>
+                {spec.origin === "internal" && <InternalBadge />}
               </div>
               <p className="mt-1 truncate text-[12px] text-fg-dim">
                 {spec.kind === "project" ? spec.stack.slice(0, 3).join(" · ") : `${spec.org} · ${spec.period}`}
@@ -409,7 +439,7 @@ function Overview() {
       <SpecGrid
         heading="Projects"
         specs={suites.find((s) => s.id === "projects")?.specs ?? []}
-        subtitle="Tooling built so the quality work above could happen."
+        subtitle="Personal work first; internal tooling built at Sorcero is marked."
       />
 
       <h3 className="mt-10 mb-3 text-[11px] tracking-[0.12em] text-fg-faint uppercase">

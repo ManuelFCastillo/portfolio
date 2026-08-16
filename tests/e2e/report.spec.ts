@@ -101,8 +101,40 @@ test.describe("HTML report", () => {
     const overview = page.getByTestId("overview");
     await expect(overview).toContainText("Experience");
     await expect(overview).toContainText("Projects");
-    await expect(overview).toContainText("Sorceror");
+    await expect(overview).toContainText("Ask the Library");
     await expect(overview).toContainText("Sorcero: Tesseract");
+  });
+
+  test("personal work leads and internal tooling is flagged", async ({ page }) => {
+    // Scoped by testid: a sibling combinator also swept in the contact block.
+    const cards = page
+      .locator('[data-testid="spec-grid"][data-heading="projects"]')
+      .getByRole("button");
+
+    // Personal projects first, internal tooling last.
+    await expect(cards.first()).toContainText("Ask the Library");
+    await expect(cards.last()).toContainText("Tesseract");
+
+    // Only the internal ones carry the badge — personal work is the default.
+    const badges = page
+      .locator('[data-testid="spec-grid"][data-heading="projects"]')
+      .getByTestId("internal-badge");
+    await expect(badges).toHaveCount(2);
+    await expect(cards.first().getByTestId("internal-badge")).toHaveCount(0);
+    await expect(cards.last().getByTestId("internal-badge")).toHaveCount(1);
+  });
+
+  test("the badge carries through to the spec detail", async ({ page }) => {
+    await page
+      .getByTestId("overview")
+      .getByRole("button", { name: /^Sorceror/ })
+      .click();
+    await expect(
+      page.getByTestId("spec-detail").getByTestId("internal-badge"),
+    ).toBeVisible();
+
+    await page.getByTestId("tab-report").click();
+    await page.getByTestId("spec-detail").isVisible().catch(() => {});
   });
 
   test("the Chrome extension project opens with its detail", async ({ page }) => {
