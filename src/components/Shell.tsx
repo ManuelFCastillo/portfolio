@@ -5,8 +5,8 @@ import { allTests, contact, profile, totals } from "@/lib/resume";
 import { useRunner } from "@/lib/runner-context";
 import { REPO_URL } from "@/lib/ci";
 import { CiBadge } from "./CiStatus";
+import { Desktop } from "./desktop/Desktop";
 import { Report } from "./Report";
-import { Terminal } from "./Terminal";
 
 function Tab({
   label,
@@ -118,7 +118,7 @@ export function Shell() {
 
       {/* Body */}
       <main className="min-h-0 flex-1">
-        {state.view === "terminal" ? <Terminal /> : <Report />}
+        {state.view === "terminal" ? <Desktop /> : <Report />}
       </main>
 
       {/* Status bar */}

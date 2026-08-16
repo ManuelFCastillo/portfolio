@@ -17,10 +17,18 @@ interface — no learning curve, instant recognition, and the medium doubles as 
 
 Two surfaces, one state machine:
 
+- **Desktop** — a small window manager behind the Terminal tab: draggable windows
+  with working traffic lights, a Files browser, and the résumé PDF previewed in
+  place. Collapses to a plain full-bleed terminal below 900px.
 - **Terminal** — a real command parser with history, tab completion, and `--grep`
   filtering. Not canned strings.
 - **Report** — a Playwright-style HTML report: spec tree, expandable assertions,
   trace-viewer panels that open into case studies, skills rendered as a coverage table.
+
+Window geometry is deliberately *not* in the runner reducer — moving a window is
+not a fact about the résumé. But clicking a spec in Files still dispatches into the
+runner, so the desktop is a third surface over the same state rather than a
+separate app.
 
 They share one reducer. Click a spec in the report and the equivalent command appears
 in the terminal history; run `open career/sorcero.spec.ts` and the report moves. There
@@ -66,6 +74,8 @@ src/components/Terminal.tsx the CLI surface
 src/components/Report.tsx   the GUI surface
 src/components/Lines.tsx    renderers for each output line kind
 src/components/ResumeDocument.tsx  server-rendered semantic résumé
+src/lib/windows.tsx       window manager state
+src/components/desktop/   window chrome, Files browser, résumé preview
 ```
 
 Real durations are displayed; wall-clock is compressed 14× so a "12 second" suite
@@ -85,7 +95,7 @@ Three audiences never see the runner and are all handled deliberately:
 
 ## The suite that tests this site
 
-The runner on the page is a dramatisation. **This** is the real thing: 57 Playwright
+The runner on the page is a dramatisation. **This** is the real thing: 68 Playwright
 tests × 2 projects (desktop Chrome, Pixel 7), run by GitHub Actions on every push.
 The badge above is its actual conclusion, and so is the one in the site's status bar —
 type `ci` in the terminal for the detail.
@@ -116,6 +126,7 @@ What it covers:
 | `terminal.spec.ts` | The parser — `--grep`, `--failed`, `ls`, `cat`, `coverage`, aliases, tab completion, history, and one regression test for consecutive commands swallowing each other's output |
 | `report.spec.ts` | The **shared-state claim**: clicking a spec writes the command into the terminal, `open` moves the report, clicking an assertion opens its trace. If those two surfaces ever drift apart, these fail |
 | `ci.spec.ts` | The live badge, with both sources intercepted so the suite is deterministic — published-file path, API fallback, rate-limited, network failure, and that the published file wins without touching the API |
+| `desktop.spec.ts` | The window manager — traffic lights, dragging, the dock, right-click menus, that windows never overflow the viewport, that clicking a spec file drives the shared runner state, and that phones get no windows at all |
 | `discoverability.spec.ts` | SSR résumé present in the raw HTML response, `Person` JSON-LD parses, accessible names on assertion rows, no horizontal overflow at any width, and that **no phone-shaped string exists in the HTML or the DOM** before a user gesture |
 
 Elements are addressed by `data-testid` and accessible name, never by CSS class.
