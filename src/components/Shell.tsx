@@ -75,7 +75,7 @@ export function Shell() {
         <div className="flex items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3 py-2.5">
             <span className="truncate font-sans text-[13.5px] font-medium tracking-tight text-fg-strong">
-              {profile.fullName}
+              {profile.name}
             </span>
             <span className="hidden truncate text-[12px] text-fg-dim sm:inline">
               {profile.title}

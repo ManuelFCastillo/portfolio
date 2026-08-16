@@ -1,6 +1,6 @@
 # portfolio
 
-**Live: https://portfolio-nine-woad-35.vercel.app**
+**Live: https://www.mannycastillo.dev**
 
 [![e2e](https://github.com/ManuelFCastillo/portfolio/actions/workflows/e2e.yml/badge.svg)](https://github.com/ManuelFCastillo/portfolio/actions/workflows/e2e.yml)
 
@@ -148,7 +148,7 @@ needs no code change.
 The suite can be pointed at a deployed origin to smoke-test it:
 
 ```bash
-BASE_URL=https://portfolio-nine-woad-35.vercel.app npx playwright test
+BASE_URL=https://www.mannycastillo.dev npx playwright test
 ```
 
 No local server is started when `BASE_URL` is remote.

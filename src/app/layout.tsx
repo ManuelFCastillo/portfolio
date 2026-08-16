@@ -27,7 +27,7 @@ const SITE =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "https://portfolio-nine-woad-35.vercel.app");
+    : "https://www.mannycastillo.dev");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -61,8 +61,8 @@ export const metadata: Metadata = {
     "Manny Castillo",
     "Manuel Castillo",
   ],
-  authors: [{ name: profile.fullName, url: contact.linkedinUrl }],
-  creator: profile.fullName,
+  authors: [{ name: profile.name, url: contact.linkedinUrl }],
+  creator: profile.name,
   openGraph: {
     type: "profile",
     title: `${profile.name} — ${profile.title}`,
@@ -88,8 +88,10 @@ function JsonLd() {
   const data = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: profile.fullName,
-    alternateName: profile.name,
+    // Preferred name leads; the legal name stays as an alias so he is
+    // findable under either.
+    name: profile.name,
+    alternateName: profile.fullName,
     jobTitle: profile.title,
     description: profile.summary,
     email: `mailto:${contact.email}`,

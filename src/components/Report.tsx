@@ -320,7 +320,7 @@ function Overview() {
     >
       <p className="text-[12px] text-fg-faint">report/index.html</p>
       <h2 className="mt-1.5 font-sans text-3xl font-semibold tracking-tight text-fg-strong sm:text-4xl">
-        {profile.fullName}
+        {profile.name}
       </h2>
       <p className="mt-1.5 font-sans text-[15px] text-fg-dim">{profile.title}</p>
 

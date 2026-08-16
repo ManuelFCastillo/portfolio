@@ -110,16 +110,16 @@ test.describe("command line", () => {
       await input.press("Enter");
     }
     const out = terminal(page);
-    await expect(out).toContainText("Manuel Castillo");
+    await expect(out).toContainText("Manny Castillo");
     await expect(out).toContainText("command not found: bad-one");
     await expect(out).toContainText("cat: nope.txt: no such file");
   });
 
   test("clear empties the screen", async ({ page }) => {
     await runCommand(page, "whoami");
-    await expect(terminal(page)).toContainText("Manuel Castillo");
+    await expect(terminal(page)).toContainText("Manny Castillo");
     await runCommand(page, "clear");
-    await expect(terminal(page)).not.toContainText("Manuel Castillo");
+    await expect(terminal(page)).not.toContainText("Manny Castillo");
   });
 
   test("arrow up recalls the previous command", async ({ page }) => {

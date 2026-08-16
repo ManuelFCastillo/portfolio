@@ -51,7 +51,7 @@ test.describe("HTML report", () => {
   test("overview shows totals that match the run", async ({ page }) => {
     const overview = page.getByTestId("overview");
     await expect(overview).toBeVisible();
-    await expect(overview).toContainText("Manuel Castillo");
+    await expect(overview).toContainText("Manny Castillo");
     // Labels are uppercased in CSS; the DOM text is lowercase.
     await expect(overview).toContainText(/passed/i);
     await expect(overview).toContainText(/failed/i);

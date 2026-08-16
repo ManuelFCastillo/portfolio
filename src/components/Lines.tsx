@@ -290,7 +290,7 @@ function ResumeText() {
   return (
     <div className="animate-fade-in my-2 max-w-3xl space-y-4">
       <div>
-        <p className="text-fg-strong"># {profile.fullName}</p>
+        <p className="text-fg-strong"># {profile.name}</p>
         <p className="text-fg-dim">{profile.title}</p>
         <a
           href={RESUME_PDF}

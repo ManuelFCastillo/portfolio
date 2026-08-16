@@ -33,7 +33,8 @@ test.describe("search engines", () => {
 
     const data = JSON.parse(match![1]);
     expect(data["@type"]).toBe("Person");
-    expect(data.name).toBe("Manuel Castillo");
+    expect(data.name).toBe("Manny Castillo");
+    expect(data.alternateName).toBe("Manuel Castillo");
     expect(data.jobTitle).toContain("Software Engineer in Test");
     expect(Array.isArray(data.knowsAbout)).toBe(true);
     expect(data.knowsAbout).toContain("Maestro (iOS)");
@@ -53,7 +54,7 @@ test.describe("assistive technology", () => {
     const doc = page.getByRole("article", { name: /résumé, plain text/i });
     await expect(doc).toBeAttached();
     await expect(doc.getByRole("heading", { level: 1 })).toHaveText(
-      "Manuel Castillo",
+      "Manny Castillo",
     );
   });
 

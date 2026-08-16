@@ -417,7 +417,7 @@ function execute(input: string): ExecResult {
     case "whoami":
       return {
         queue: [
-          { line: { kind: "text", text: profile.fullName, tone: "accent" }, delay: 70 },
+          { line: { kind: "text", text: profile.name, tone: "accent" }, delay: 70 },
           { line: { kind: "text", text: profile.title }, delay: 60 },
           { line: { kind: "text", text: profile.headline, tone: "dim" }, delay: 60 },
         ],

@@ -36,7 +36,7 @@ export function ResumeDocument() {
       className="sr-only print:not-sr-only print:static print:m-0 print:h-auto print:w-auto print:overflow-visible print:p-0 print:text-[10.5pt] print:leading-snug print:text-black"
     >
       <header>
-        <h1 className="print:text-[20pt] print:font-bold">{profile.fullName}</h1>
+        <h1 className="print:text-[20pt] print:font-bold">{profile.name}</h1>
         <p className="print:text-[11pt] print:font-medium">{profile.title}</p>
         <p className="print:text-[9.5pt]">{profile.headline}</p>
         {/* No phone here: this block is server-rendered, so anything in it is
