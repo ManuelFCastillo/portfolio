@@ -1,3 +1,5 @@
+import type { ProjectCi } from "./ci";
+
 /**
  * The résumé, modeled as a test suite.
  *
@@ -72,6 +74,11 @@ export interface Spec {
   origin?: "internal" | "personal" | "contract";
   /** Evidence, for projects a reader cannot otherwise see running. */
   screenshots?: Screenshot[];
+  /**
+   * Projects that run their own suite in their own repo. The badge beside the
+   * period then reflects that repo's latest run, not this site's.
+   */
+  ci?: ProjectCi;
 }
 
 export interface Screenshot {
@@ -620,6 +627,11 @@ const askTheLibrary: Spec = {
   org: "Personal project",
   location: "Two-node home lab",
   period: "In progress",
+  ci: {
+    repo: "ManuelFCastillo/ask-the-library",
+    slug: "ask-the-library",
+    label: "API unit tests, deterministic e2e suite, and an undefined-reference gate",
+  },
   brief:
     "A self-hosted RAG platform over a 50,700-book Project Gutenberg mirror — 7.5M passages, FastAPI backend, Elasticsearch kNN vector search on local embeddings, and streaming citation-grounded answers from self-hosted LLMs across a two-node home lab. Zero cloud APIs. Two React front-ends ship against the one API, an agentic ingestion pipeline gates what gets in, and a Stable Diffusion pipeline restores unusable cover scans. The testing on it is layered the way production systems need: a deterministic offline suite for speed, and a live smoke suite against real infrastructure that has already caught degradation before users did.",
   stack: [

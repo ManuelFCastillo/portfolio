@@ -205,3 +205,88 @@ test.describe("ci command", () => {
     await expect(terminal(page)).toContainText("live status of the real");
   });
 });
+
+/**
+ * The project badge is a different mechanism from the site's own: the repo is
+ * private, so nothing is fetched in the browser at all — the build writes
+ * `/ci-status-<slug>.json` server-side and the page just reads it. Both states
+ * matter, and the absent one matters more: a project must render normally when
+ * no token was configured for the build.
+ */
+test.describe("project CI badge", () => {
+  const PROJECT_STATUS = "**/ci-status-ask-the-library.json";
+
+  const projectRun = {
+    conclusion: "success",
+    passed: null,
+    failed: null,
+    durationMs: 55_000,
+    sha: "0293426e44dbdd",
+    branch: "master",
+    runNumber: 12,
+    url: "https://github.com/ManuelFCastillo/ask-the-library/actions/runs/12",
+    finishedAt: new Date(Date.now() - 90_000).toISOString(),
+  };
+
+  async function openAskTheLibrary(page: Page) {
+    await page.goto("/");
+    await settleRun(page);
+    await page.getByTestId("tab-report").click();
+    await page
+      .getByTestId("overview")
+      .getByRole("button", { name: /^Ask the Library/ })
+      .click();
+  }
+
+  test("a published status appears beside the project's period", async ({
+    page,
+  }) => {
+    await page.route(PROJECT_STATUS, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(projectRun),
+      }),
+    );
+    await openAskTheLibrary(page);
+
+    const badge = page.getByTestId("project-ci-badge");
+    await expect(badge).toBeVisible();
+    await expect(badge).toHaveAttribute("data-ci-state", "success");
+    await expect(badge).toContainText("CI passing");
+    await expect(badge).toHaveAttribute("href", projectRun.url);
+
+    // Beside the period, not somewhere else on the page.
+    await expect(
+      page.getByTestId("spec-detail").getByText("In progress"),
+    ).toBeVisible();
+  });
+
+  test("a failing run says so", async ({ page }) => {
+    await page.route(PROJECT_STATUS, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...projectRun, conclusion: "failure" }),
+      }),
+    );
+    await openAskTheLibrary(page);
+
+    const badge = page.getByTestId("project-ci-badge");
+    await expect(badge).toHaveAttribute("data-ci-state", "failure");
+    await expect(badge).toContainText("CI failing");
+  });
+
+  test("no published status renders no badge, not a dead one", async ({
+    page,
+  }) => {
+    await page.route(PROJECT_STATUS, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await openAskTheLibrary(page);
+
+    // The spec itself is unaffected.
+    await expect(page.getByTestId("spec-detail")).toContainText("In progress");
+    await expect(page.getByTestId("project-ci-badge")).toHaveCount(0);
+  });
+});

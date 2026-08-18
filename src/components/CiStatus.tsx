@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import {
   loadCiRun,
+  loadProjectCiRun,
   relativeTime,
   WORKFLOW_URL,
   type CiRun,
+  type ProjectCi,
 } from "@/lib/ci";
 
 export function useCiRun() {
@@ -42,6 +44,53 @@ const label: Record<string, string> = {
   cancelled: "cancelled",
   unknown: "unknown",
 };
+
+/**
+ * The same badge for a project's own repo, shown beside its period. "In
+ * progress" is a claim about a project; a green run number is evidence for it.
+ *
+ * Renders nothing when no status has been published — a private repo with no
+ * build-time token is the normal case, and a permanently grey dot beside a
+ * project reads worse than no dot at all.
+ */
+export function ProjectCiBadge({ project }: { project: ProjectCi }) {
+  const [run, setRun] = useState<CiRun | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    loadProjectCiRun(project).then((r) => alive && setRun(r));
+    return () => {
+      alive = false;
+    };
+  }, [project]);
+
+  if (!run) return null;
+
+  const counts =
+    run.passed !== null ? ` · ${run.passed} passed` : "";
+
+  return (
+    <a
+      href={run.url}
+      target="_blank"
+      rel="noreferrer"
+      data-testid="project-ci-badge"
+      data-ci-state={run.conclusion}
+      title={`${project.label} — run #${run.runNumber} on ${run.branch}${counts}, ${relativeTime(run.finishedAt)}`}
+      className="inline-flex items-center gap-1.5 rounded border border-line px-1.5 py-0.5 text-[11.5px] text-fg-dim transition-colors hover:border-accent/40 hover:text-accent"
+    >
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${dot[run.conclusion]}`}
+        style={
+          run.conclusion === "success"
+            ? { boxShadow: "0 0 8px var(--glow-pass)" }
+            : undefined
+        }
+      />
+      CI {label[run.conclusion]}
+    </a>
+  );
+}
 
 /** Compact live badge for the status bar. */
 export function CiBadge() {

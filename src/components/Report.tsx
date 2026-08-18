@@ -15,20 +15,54 @@ import {
   type Test,
 } from "@/lib/resume";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRunner } from "@/lib/runner-context";
 import { fmt } from "./Lines";
 import { Email } from "./Email";
 import { Phone } from "./Phone";
+import { ProjectCiBadge } from "./CiStatus";
 
 /**
  * Screenshots for projects nobody can go and run. Rendered small inline, with
  * a click to enlarge — the UI text in a product shot is illegible at column
  * width, which makes an un-enlargeable screenshot decorative rather than
  * evidence.
+ *
+ * The overlay is portalled to <body> rather than rendered in place. `position:
+ * fixed` is only viewport-relative while no ancestor establishes a containing
+ * block, and the report body sits inside `.animate-rise-in`, whose animation
+ * leaves a (identity) `transform` behind — enough to re-anchor `inset-0` to
+ * that scrolling column. The overlay then measured 533px wide, 595px above the
+ * viewport, and the "enlarged" image came out 2px across: clicking to zoom
+ * appeared to do nothing. A portal is the durable fix, because it also survives
+ * any future transform, filter, or backdrop-blur added to an ancestor.
  */
+/**
+ * Both the thumbnail and the overlay declare the same `sizes`, so next/image
+ * resolves them to the same srcset candidate and the overlay paints from cache
+ * the instant it opens. They used to differ, which meant the overlay asked for
+ * a variant nobody had fetched (an upscaled w=3840 of a 1600px source) and
+ * opened on an image with no bytes.
+ */
+const SHOT_SIZES = "(max-width: 900px) 100vw, 720px";
+
 function Shots({ shots }: { shots: Screenshot[] }) {
   const [zoomed, setZoomed] = useState<Screenshot | null>(null);
+
+  // Escape closes from anywhere, and the page behind must not scroll while the
+  // overlay owns the screen.
+  useEffect(() => {
+    if (!zoomed) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setZoomed(null);
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [zoomed]);
 
   return (
     <>
@@ -46,7 +80,7 @@ function Shots({ shots }: { shots: Screenshot[] }) {
                 width={shot.width}
                 height={shot.height}
                 alt={shot.alt}
-                sizes="(max-width: 900px) 100vw, 720px"
+                sizes={SHOT_SIZES}
                 className="h-auto w-full"
               />
             </button>
@@ -58,24 +92,31 @@ function Shots({ shots }: { shots: Screenshot[] }) {
         ))}
       </div>
 
-      {zoomed && (
+      {zoomed &&
+        createPortal(
         <div
           role="dialog"
           aria-modal="true"
           aria-label={zoomed.alt}
           data-testid="screenshot-lightbox"
           onClick={() => setZoomed(null)}
-          onKeyDown={(e) => e.key === "Escape" && setZoomed(null)}
           tabIndex={-1}
           ref={(el) => el?.focus()}
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-bg/90 p-4 backdrop-blur-sm sm:p-8"
         >
+          {/*
+            Sized from the overlay rather than from the image's intrinsic size:
+            with width and height both auto, an image that has not decoded yet
+            lays out at 2x2, so "enlarge" visibly did nothing until the bytes
+            arrived. object-contain letterboxes the picture inside the box.
+          */}
           <Image
             src={zoomed.src}
             width={zoomed.width}
             height={zoomed.height}
             alt={zoomed.alt}
-            className="max-h-full w-auto rounded-lg border border-line object-contain"
+            sizes={SHOT_SIZES}
+            className="h-full w-full rounded-lg border border-line object-contain"
           />
           <button
             onClick={() => setZoomed(null)}
@@ -84,8 +125,9 @@ function Shots({ shots }: { shots: Screenshot[] }) {
           >
             Close
           </button>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   );
 }
@@ -328,8 +370,11 @@ export function SpecDetail({ spec }: { spec: Spec }) {
       <h2 className="mt-1.5 font-sans text-2xl font-semibold tracking-tight text-fg-strong sm:text-3xl">
         {spec.role}
       </h2>
-      <p className="mt-1.5 text-[13.5px] text-fg-dim">
-        {spec.org} · {spec.location} · {spec.period}
+      <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13.5px] text-fg-dim">
+        <span>
+          {spec.org} · {spec.location} · {spec.period}
+        </span>
+        {spec.ci && <ProjectCiBadge project={spec.ci} />}
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px]">

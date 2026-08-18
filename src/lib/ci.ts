@@ -151,6 +151,52 @@ export function loadCiRun(): Promise<CiRun | null> {
 /** Test seam — lets the suite reset the module cache between cases. */
 export function resetCiCache() {
   inflight = null;
+  projectInflight.clear();
+}
+
+// --------------------------------------------------------------- project CI
+//
+// Some of the projects on this site run their own suites in their own repos.
+// Those repos are private, so the anonymous Actions API returns 404 for them
+// and the browser can never read their status directly. Instead the build
+// fetches each one server-side with a token (scripts/project-ci-status.mjs)
+// and writes `public/ci-status-<slug>.json`, which is public, tiny, and carries
+// nothing but a conclusion, a run number and a timestamp.
+//
+// No token configured means no file, which means no badge — the project still
+// renders, just without a live status.
+
+export interface ProjectCi {
+  /** `owner/name`. Private is fine; nothing about it reaches the browser. */
+  repo: string;
+  /** Names the published file: `public/ci-status-<slug>.json`. */
+  slug: string;
+  /** What the suite covers, for the badge's tooltip. */
+  label: string;
+}
+
+const projectInflight = new Map<string, Promise<CiRun | null>>();
+
+export function loadProjectCiRun(project: ProjectCi): Promise<CiRun | null> {
+  const cached = projectInflight.get(project.slug);
+  if (cached) return cached;
+
+  const pending = (async () => {
+    try {
+      const res = await fetch(`/ci-status-${project.slug}.json`, {
+        cache: "no-cache",
+      });
+      if (!res.ok) return null;
+      const body = (await res.json()) as PublishedStatus;
+      if (!body?.conclusion || body.conclusion === "unknown") return null;
+      return fromPublished(body);
+    } catch {
+      return null;
+    }
+  })();
+
+  projectInflight.set(project.slug, pending);
+  return pending;
 }
 
 export function relativeTime(iso: string | null): string {

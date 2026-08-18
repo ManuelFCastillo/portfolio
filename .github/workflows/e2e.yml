@@ -18,6 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Reads the CI conclusion of the private project repos this site links to
+    # (see scripts/project-ci-status.mjs), server-side, at build time. Optional:
+    # without the secret the build still succeeds and those badges just do not
+    # render. Fine-grained PAT, Actions: read, nothing else.
+    env:
+      PROJECT_CI_TOKEN: ${{ secrets.PROJECT_CI_TOKEN }}
+
     steps:
       - uses: actions/checkout@v5
 

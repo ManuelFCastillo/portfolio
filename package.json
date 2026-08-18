@@ -11,7 +11,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "resume:pdf": "node scripts/resume-pdf.mjs",
-    "prebuild": "node scripts/ci-status.mjs"
+    "prebuild": "node scripts/ci-status.mjs && node scripts/project-ci-status.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

@@ -298,6 +298,47 @@ test.describe("project screenshots", () => {
     await expect(box).toBeHidden();
   });
 
+  /**
+   * The existing "opens a lightbox" test passed while the lightbox was broken:
+   * it was visible, and Escape closed it — but `position: fixed` was anchored
+   * to an ancestor carrying a transform, so the overlay rendered 533px wide and
+   * mostly above the viewport, and the enlarged image came out 2px across.
+   * Enlarging is the whole point, so assert the geometry, not the existence.
+   */
+  test("the lightbox covers the viewport and the image actually enlarges", async ({
+    page,
+  }) => {
+    const thumb = page.getByTestId("screenshots").locator("img").first();
+    await thumb.scrollIntoViewIfNeeded();
+    const thumbBox = (await thumb.boundingBox())!;
+
+    await page.getByTestId("screenshot-open").first().click();
+    const overlay = page.getByTestId("screenshot-lightbox");
+    await expect(overlay).toBeVisible();
+
+    const viewport = page.viewportSize()!;
+    const overlayBox = (await overlay.boundingBox())!;
+    expect(overlayBox.x).toBe(0);
+    expect(overlayBox.y).toBe(0);
+    expect(overlayBox.width).toBe(viewport.width);
+    expect(overlayBox.height).toBe(viewport.height);
+
+    const zoomed = overlay.locator("img");
+    const zoomedBox = (await zoomed.boundingBox())!;
+    expect(zoomedBox.width).toBeGreaterThan(thumbBox.width);
+    // Fills the overlay bar its padding, rather than merely being "bigger".
+    expect(zoomedBox.width).toBeGreaterThan(viewport.width * 0.7);
+
+    // And the pixels arrive: the overlay used to request a variant the
+    // thumbnail had not fetched, so it opened on an undecoded image.
+    await expect
+      .poll(
+        () => zoomed.evaluate((el) => (el as HTMLImageElement).naturalWidth),
+        { message: "the enlarged image never decoded" },
+      )
+      .toBeGreaterThan(thumbBox.width);
+  });
+
   test("specs without screenshots render nothing extra", async ({ page }) => {
     // Start clean: the Report tab keeps whatever spec is already open.
     await page.goto("/");
