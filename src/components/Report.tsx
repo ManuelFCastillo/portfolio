@@ -15,7 +15,7 @@ import {
   type Test,
 } from "@/lib/resume";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRunner } from "@/lib/runner-context";
 import { fmt } from "./Lines";
@@ -23,21 +23,6 @@ import { Email } from "./Email";
 import { Phone } from "./Phone";
 import { ProjectCiBadge } from "./CiStatus";
 
-/**
- * Screenshots for projects nobody can go and run. Rendered small inline, with
- * a click to enlarge — the UI text in a product shot is illegible at column
- * width, which makes an un-enlargeable screenshot decorative rather than
- * evidence.
- *
- * The overlay is portalled to <body> rather than rendered in place. `position:
- * fixed` is only viewport-relative while no ancestor establishes a containing
- * block, and the report body sits inside `.animate-rise-in`, whose animation
- * leaves a (identity) `transform` behind — enough to re-anchor `inset-0` to
- * that scrolling column. The overlay then measured 533px wide, 595px above the
- * viewport, and the "enlarged" image came out 2px across: clicking to zoom
- * appeared to do nothing. A portal is the durable fix, because it also survives
- * any future transform, filter, or backdrop-blur added to an ancestor.
- */
 /**
  * Both the thumbnail and the overlay declare the same `sizes`, so next/image
  * resolves them to the same srcset candidate and the overlay paints from cache
@@ -47,14 +32,49 @@ import { ProjectCiBadge } from "./CiStatus";
  */
 const SHOT_SIZES = "(max-width: 900px) 100vw, 720px";
 
+/** Past this much movement a pointer gesture is a pan, not a click. */
+const DRAG_SLOP_PX = 4;
+
+/**
+ * Screenshots for projects nobody can go and run. Rendered small inline, with
+ * a click to enlarge — the UI text in a product shot is illegible at column
+ * width, which makes an un-enlargeable screenshot decorative rather than
+ * evidence.
+ *
+ * Enlarging is two stages, because "fits the screen" and "readable" are not the
+ * same thing. The overlay first fits the whole image to the viewport; clicking
+ * it again magnifies to 1:1 and lets you pan, centred on whatever you clicked.
+ * On a phone that second step is roughly a 4x jump. On a wide desktop it is
+ * closer to 1.3x, because the source is 1600px and anything past 1:1 would be
+ * interpolation rather than detail — the honest ceiling is the screenshot, not
+ * the viewer.
+ *
+ * The overlay is portalled to <body> rather than rendered in place. `position:
+ * fixed` is only viewport-relative while no ancestor establishes a containing
+ * block, and the report body sits inside `.animate-rise-in`, whose animation
+ * leaves an (identity) `transform` behind — enough to re-anchor `inset-0` to
+ * that scrolling column. The overlay then measured 533px wide, 595px above the
+ * viewport, and the "enlarged" image came out 2px across: clicking to zoom
+ * appeared to do nothing. A portal is the durable fix, because it also survives
+ * any future transform, filter, or backdrop-blur added to an ancestor.
+ */
 function Shots({ shots }: { shots: Screenshot[] }) {
   const [zoomed, setZoomed] = useState<Screenshot | null>(null);
+  const [magnified, setMagnified] = useState(false);
+  const paneRef = useRef<HTMLDivElement | null>(null);
+  const pan = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
+  const panned = useRef(false);
+
+  const close = useCallback(() => setZoomed(null), []);
+
+  // A newly opened screenshot always starts fitted.
+  useEffect(() => setMagnified(false), [zoomed]);
 
   // Escape closes from anywhere, and the page behind must not scroll while the
   // overlay owns the screen.
   useEffect(() => {
     if (!zoomed) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setZoomed(null);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -62,7 +82,61 @@ function Shots({ shots }: { shots: Screenshot[] }) {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [zoomed]);
+  }, [zoomed, close]);
+
+  function toggleMagnify(e: React.MouseEvent<HTMLElement>) {
+    // The backdrop closes the overlay; the image itself must not.
+    e.stopPropagation();
+
+    // Releasing a pan fires a click too. Swallow that one.
+    if (panned.current) {
+      panned.current = false;
+      return;
+    }
+    if (magnified) {
+      setMagnified(false);
+      return;
+    }
+
+    const box = e.currentTarget.getBoundingClientRect();
+    const rx = box.width ? (e.clientX - box.left) / box.width : 0.5;
+    const ry = box.height ? (e.clientY - box.top) / box.height : 0.5;
+    setMagnified(true);
+
+    // Centre on whatever was clicked, once the magnified layout exists.
+    requestAnimationFrame(() => {
+      const pane = paneRef.current;
+      if (!pane) return;
+      pane.scrollLeft = rx * pane.scrollWidth - pane.clientWidth / 2;
+      pane.scrollTop = ry * pane.scrollHeight - pane.clientHeight / 2;
+    });
+  }
+
+  function startPan(e: React.PointerEvent<HTMLElement>) {
+    const pane = paneRef.current;
+    if (!magnified || !pane) return;
+    pan.current = { x: e.clientX, y: e.clientY, left: pane.scrollLeft, top: pane.scrollTop };
+    panned.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function movePan(e: React.PointerEvent<HTMLElement>) {
+    const from = pan.current;
+    const pane = paneRef.current;
+    if (!from || !pane) return;
+    const dx = e.clientX - from.x;
+    const dy = e.clientY - from.y;
+    if (Math.abs(dx) > DRAG_SLOP_PX || Math.abs(dy) > DRAG_SLOP_PX) panned.current = true;
+    pane.scrollLeft = from.left - dx;
+    pane.scrollTop = from.top - dy;
+  }
+
+  function endPan(e: React.PointerEvent<HTMLElement>) {
+    pan.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  }
 
   return (
     <>
@@ -86,7 +160,9 @@ function Shots({ shots }: { shots: Screenshot[] }) {
             </button>
             <figcaption className="mt-2 font-sans text-[12.5px] leading-relaxed text-fg-dim">
               {shot.caption}{" "}
-              <span className="text-fg-faint">Click to enlarge.</span>
+              <span className="text-fg-faint">
+                Click to enlarge, then click again to zoom in.
+              </span>
             </figcaption>
           </figure>
         ))}
@@ -94,38 +170,81 @@ function Shots({ shots }: { shots: Screenshot[] }) {
 
       {zoomed &&
         createPortal(
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={zoomed.alt}
-          data-testid="screenshot-lightbox"
-          onClick={() => setZoomed(null)}
-          tabIndex={-1}
-          ref={(el) => el?.focus()}
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-bg/90 p-4 backdrop-blur-sm sm:p-8"
-        >
-          {/*
-            Sized from the overlay rather than from the image's intrinsic size:
-            with width and height both auto, an image that has not decoded yet
-            lays out at 2x2, so "enlarge" visibly did nothing until the bytes
-            arrived. object-contain letterboxes the picture inside the box.
-          */}
-          <Image
-            src={zoomed.src}
-            width={zoomed.width}
-            height={zoomed.height}
-            alt={zoomed.alt}
-            sizes={SHOT_SIZES}
-            className="h-full w-full rounded-lg border border-line object-contain"
-          />
-          <button
-            onClick={() => setZoomed(null)}
-            aria-label="Close screenshot"
-            className="absolute top-4 right-4 rounded border border-line bg-panel/90 px-3 py-1.5 text-[13px] text-fg-dim hover:text-accent"
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={zoomed.alt}
+            data-testid="screenshot-lightbox"
+            onClick={close}
+            tabIndex={-1}
+            ref={(el) => el?.focus()}
+            className="fixed inset-0 z-[1000] bg-bg/90 p-4 backdrop-blur-sm sm:p-8"
           >
-            Close
-          </button>
-        </div>,
+            <div
+              ref={paneRef}
+              data-testid="screenshot-pane"
+              className={
+                magnified
+                  ? "h-full w-full overflow-auto overscroll-contain"
+                  : "flex h-full w-full items-center justify-center"
+              }
+            >
+              <button
+                type="button"
+                onClick={toggleMagnify}
+                onPointerDown={startPan}
+                onPointerMove={movePan}
+                onPointerUp={endPan}
+                onPointerCancel={endPan}
+                aria-label={
+                  magnified
+                    ? "Zoom out to fit the screen"
+                    : "Zoom in to full size"
+                }
+                className={
+                  magnified
+                    ? "block cursor-zoom-out"
+                    : "flex h-full w-full cursor-zoom-in items-center justify-center"
+                }
+              >
+                {/*
+                  Sized from the overlay rather than from the image's intrinsic
+                  size: with width and height both auto, an image that has not
+                  decoded yet lays out at 2x2, so "enlarge" visibly did nothing
+                  until the bytes arrived. Magnified, it is pinned to its natural
+                  size and `sizes` asks for a candidate at least that wide —
+                  otherwise a DPR-1 browser would blow up the 720px thumbnail
+                  variant and the zoom would be blurrier than the fit. Changing
+                  `sizes` re-runs srcset selection on the same element rather
+                  than remounting it, so the already-loaded bytes stay on screen
+                  while the larger candidate arrives instead of flashing blank.
+                */}
+                <Image
+                  src={zoomed.src}
+                  width={zoomed.width}
+                  height={zoomed.height}
+                  alt={zoomed.alt}
+                  sizes={magnified ? `${zoomed.width}px` : SHOT_SIZES}
+                  draggable={false}
+                  data-testid="screenshot-zoomed"
+                  data-magnified={magnified ? "true" : "false"}
+                  style={magnified ? { width: zoomed.width, height: zoomed.height } : undefined}
+                  className={
+                    magnified
+                      ? "max-w-none rounded-lg border border-line select-none"
+                      : "h-full w-full rounded-lg border border-line object-contain"
+                  }
+                />
+              </button>
+            </div>
+            <button
+              onClick={close}
+              aria-label="Close screenshot"
+              className="absolute top-4 right-4 z-10 rounded border border-line bg-panel/90 px-3 py-1.5 text-[13px] text-fg-dim hover:text-accent"
+            >
+              Close
+            </button>
+          </div>,
           document.body,
         )}
     </>

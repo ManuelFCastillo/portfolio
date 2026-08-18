@@ -339,6 +339,84 @@ test.describe("project screenshots", () => {
       .toBeGreaterThan(thumbBox.width);
   });
 
+  /**
+   * Fitting the image to the viewport is not the same as making it readable:
+   * fitted, a 1600px screenshot lands at ~1216px on a desktop and ~380px on a
+   * phone, and the UI text in it is still too small to read. The second stage
+   * is the one that answers "let me see that detail".
+   */
+  test("clicking the enlarged image magnifies it to full size and back", async ({
+    page,
+  }) => {
+    await page.getByTestId("screenshot-open").first().click();
+    const img = page.getByTestId("screenshot-zoomed");
+    await expect(img).toHaveAttribute("data-magnified", "false");
+
+    const fitted = (await img.boundingBox())!;
+    await img.click();
+
+    await expect(page.getByTestId("screenshot-zoomed")).toHaveAttribute(
+      "data-magnified",
+      "true",
+    );
+    const magnified = (await page.getByTestId("screenshot-zoomed").boundingBox())!;
+    expect(magnified.width).toBeGreaterThan(fitted.width);
+
+    // Clicking it again returns to the fitted view rather than closing.
+    await page.getByTestId("screenshot-zoomed").click();
+    await expect(page.getByTestId("screenshot-zoomed")).toHaveAttribute(
+      "data-magnified",
+      "false",
+    );
+    await expect(page.getByTestId("screenshot-lightbox")).toBeVisible();
+  });
+
+  test("a magnified image can be panned and is centred on the click", async ({
+    page,
+  }) => {
+    await page.getByTestId("screenshot-open").first().click();
+    const img = page.getByTestId("screenshot-zoomed");
+    const fitted = (await img.boundingBox())!;
+
+    // Click the right-hand side: the magnified view should open scrolled
+    // towards it rather than at the left edge.
+    await img.click({
+      position: { x: fitted.width * 0.85, y: fitted.height / 2 },
+    });
+    const pane = page.getByTestId("screenshot-pane");
+    await expect(page.getByTestId("screenshot-zoomed")).toHaveAttribute(
+      "data-magnified",
+      "true",
+    );
+
+    const scrollable = await pane.evaluate(
+      (el) => el.scrollWidth > el.clientWidth,
+    );
+    if (!scrollable) return; // viewport already fits the source at 1:1
+
+    await expect
+      .poll(() => pane.evaluate((el) => el.scrollLeft))
+      .toBeGreaterThan(0);
+
+    // Dragging pans, and does not toggle back to the fitted view. Drag to the
+    // right — the view opened near the image's right edge, so panning further
+    // that way would just clamp at scrollWidth and prove nothing.
+    const before = await pane.evaluate((el) => el.scrollLeft);
+    const box = (await pane.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2, {
+      steps: 8,
+    });
+    await page.mouse.up();
+
+    await expect.poll(() => pane.evaluate((el) => el.scrollLeft)).toBeLessThan(before);
+    await expect(page.getByTestId("screenshot-zoomed")).toHaveAttribute(
+      "data-magnified",
+      "true",
+    );
+  });
+
   test("specs without screenshots render nothing extra", async ({ page }) => {
     // Start clean: the Report tab keeps whatever spec is already open.
     await page.goto("/");
