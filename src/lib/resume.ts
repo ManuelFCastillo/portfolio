@@ -69,7 +69,19 @@ export interface Spec {
    * through to it — it lives behind a former employer's login. Personal work
    * is the default and needs no badge.
    */
-  origin?: "internal" | "personal";
+  origin?: "internal" | "personal" | "contract";
+  /** Evidence, for projects a reader cannot otherwise see running. */
+  screenshots?: Screenshot[];
+}
+
+export interface Screenshot {
+  src: string;
+  width: number;
+  height: number;
+  /** Read aloud by screen readers, so it describes the substance. */
+  alt: string;
+  /** Shown beneath the image — say what is worth noticing. */
+  caption: string;
 }
 
 export interface Suite {
@@ -623,6 +635,16 @@ const askTheLibrary: Spec = {
     "Docker",
     "Stable Diffusion",
   ],
+  screenshots: [
+    {
+      src: "/shots/ask-the-library-reader.png",
+      width: 1600,
+      height: 890,
+      alt: "The Ask the Library reader showing King Lear from Project Gutenberg in sepia, with a VocabLens panel on the left defining archaic words and a StudyBuddy panel on the right giving chapter-grounded commentary.",
+      caption:
+        "The reader on King Lear. VocabLens (left) picks archaic words out of the text and gives each one a plain-English gloss, its sense in this passage, IPA and etymology — “valewes → values, prefers”, “round → pregnant, full-term”. StudyBuddy (right) answers against the chapter you are actually on rather than the whole book.",
+    },
+  ],
   tests: [
     {
       id: "atl-deterministic",
@@ -696,12 +718,13 @@ const fare: Spec = {
   file: "projects/fare.spec.ts",
   title: "Fare",
   kind: "project",
-  role: "Fare — a rideshare app whose economics are actually fair",
-  org: "Personal project",
-  location: "In development",
-  period: "In progress",
+  role: "Fare — a rideshare platform whose economics are actually fair",
+  org: "Fare Technologies",
+  location: "Contract, via SLVRLeaf",
+  period: "In development",
+  origin: "contract",
   brief:
-    "A rideshare platform built on the premise that the split between driver and platform should be defensible. Native iOS in Swift for the driver side, a web dispatch dashboard, and a TypeScript middleware layer over Firebase coordinating the two. Still in development — the honest status, not a shipped product.",
+    "Contract work for Fare Technologies, taken on through SLVRLeaf: a rideshare platform built on the premise that the split between driver and platform should be defensible. Native iOS in Swift for the driver side, a web dispatch dashboard, and a TypeScript middleware layer over Firebase coordinating the two. Still in development — the honest status, not a shipped product.",
   stack: [
     "Swift",
     "iOS",
@@ -736,11 +759,11 @@ const fare: Spec = {
     },
     {
       id: "fare-status",
-      title: "still in development",
+      title: "delivered as contract work, still in development",
       duration: 612,
       status: "passed",
-      note: "Listed as in-progress on purpose. It is a real build with real code, not a shipped product.",
-      tags: ["In Progress"],
+      note: "Engaged through SLVRLeaf rather than built as a side project — a real client with a real deadline. Listed as in-progress on purpose: it is a live build, not a shipped product.",
+      tags: ["Contract", "SLVRLeaf", "In Progress"],
     },
   ],
 };

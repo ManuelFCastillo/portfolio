@@ -5,6 +5,7 @@ import {
   allTests,
   contact,
   credentials,
+  type Screenshot,
   profile,
   RESUME_PDF,
   skillGroups,
@@ -13,20 +14,112 @@ import {
   type Spec,
   type Test,
 } from "@/lib/resume";
+import Image from "next/image";
+import { useState } from "react";
 import { useRunner } from "@/lib/runner-context";
 import { fmt } from "./Lines";
 import { Email } from "./Email";
 import { Phone } from "./Phone";
 
-/** Flags work a reader cannot click through to. */
-function InternalBadge({ className = "" }: { className?: string }) {
+/**
+ * Screenshots for projects nobody can go and run. Rendered small inline, with
+ * a click to enlarge — the UI text in a product shot is illegible at column
+ * width, which makes an un-enlargeable screenshot decorative rather than
+ * evidence.
+ */
+function Shots({ shots }: { shots: Screenshot[] }) {
+  const [zoomed, setZoomed] = useState<Screenshot | null>(null);
+
+  return (
+    <>
+      <div className="mt-6 space-y-3" data-testid="screenshots">
+        {shots.map((shot) => (
+          <figure key={shot.src}>
+            <button
+              onClick={() => setZoomed(shot)}
+              data-testid="screenshot-open"
+              aria-label={`Enlarge screenshot: ${shot.alt}`}
+              className="group block w-full overflow-hidden rounded-lg border border-line transition-colors hover:border-accent/40"
+            >
+              <Image
+                src={shot.src}
+                width={shot.width}
+                height={shot.height}
+                alt={shot.alt}
+                sizes="(max-width: 900px) 100vw, 720px"
+                className="h-auto w-full"
+              />
+            </button>
+            <figcaption className="mt-2 font-sans text-[12.5px] leading-relaxed text-fg-dim">
+              {shot.caption}{" "}
+              <span className="text-fg-faint">Click to enlarge.</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+
+      {zoomed && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={zoomed.alt}
+          data-testid="screenshot-lightbox"
+          onClick={() => setZoomed(null)}
+          onKeyDown={(e) => e.key === "Escape" && setZoomed(null)}
+          tabIndex={-1}
+          ref={(el) => el?.focus()}
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-bg/90 p-4 backdrop-blur-sm sm:p-8"
+        >
+          <Image
+            src={zoomed.src}
+            width={zoomed.width}
+            height={zoomed.height}
+            alt={zoomed.alt}
+            className="max-h-full w-auto rounded-lg border border-line object-contain"
+          />
+          <button
+            onClick={() => setZoomed(null)}
+            aria-label="Close screenshot"
+            className="absolute top-4 right-4 rounded border border-line bg-panel/90 px-3 py-1.5 text-[13px] text-fg-dim hover:text-accent"
+          >
+            Close
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
+ * Internal work is flagged because a reader cannot click through to it.
+ * Contract work is flagged because paid client delivery is a different — and
+ * stronger — claim than a side project. Personal work needs no badge.
+ */
+function OriginBadge({
+  origin,
+  className = "",
+}: {
+  origin?: Spec["origin"];
+  className?: string;
+}) {
+  if (origin !== "internal" && origin !== "contract") return null;
+
+  const style =
+    origin === "contract"
+      ? "border-pass/30 bg-pass/10 text-pass"
+      : "border-violet/30 bg-violet/10 text-violet";
+  const title =
+    origin === "contract"
+      ? "Paid contract work, delivered for a client"
+      : "Built for internal use at Sorcero — not publicly accessible";
+
   return (
     <span
-      data-testid="internal-badge"
-      title="Built for internal use at Sorcero — not publicly accessible"
-      className={`shrink-0 rounded border border-violet/30 bg-violet/10 px-1.5 py-0.5 text-[10px] tracking-wide text-violet uppercase ${className}`}
+      data-testid={`${origin}-badge`}
+      title={title}
+      className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] tracking-wide uppercase ${style} ${className}`}
     >
-      internal
+      {origin}
     </span>
   );
 }
@@ -65,13 +158,15 @@ function SpecRow({ spec }: { spec: Spec }) {
         }
       />
       <span className="min-w-0 flex-1 truncate">{spec.title}</span>
-      {spec.origin === "internal" && (
+      {(spec.origin === "internal" || spec.origin === "contract") && (
         <span
           aria-hidden
-          title="Internal"
-          className="shrink-0 text-[9px] tracking-wider text-violet/70 uppercase"
+          title={spec.origin === "contract" ? "Contract" : "Internal"}
+          className={`shrink-0 text-[9px] tracking-wider uppercase ${
+            spec.origin === "contract" ? "text-pass/70" : "text-violet/70"
+          }`}
         >
-          int
+          {spec.origin === "contract" ? "con" : "int"}
         </span>
       )}
       <span className="shrink-0 text-[11px] tabular-nums text-fg-faint">
@@ -228,7 +323,7 @@ export function SpecDetail({ spec }: { spec: Spec }) {
 
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-[12px] text-fg-faint">{spec.file}</p>
-        {spec.origin === "internal" && <InternalBadge />}
+        <OriginBadge origin={spec.origin} />
       </div>
       <h2 className="mt-1.5 font-sans text-2xl font-semibold tracking-tight text-fg-strong sm:text-3xl">
         {spec.role}
@@ -257,6 +352,8 @@ export function SpecDetail({ spec }: { spec: Spec }) {
           </span>
         ))}
       </div>
+
+      {spec.screenshots && <Shots shots={spec.screenshots} />}
 
       <h3 className="mt-9 mb-2 text-[11px] tracking-[0.12em] text-fg-faint uppercase">
         Assertions
@@ -326,7 +423,7 @@ function SpecGrid({
                 <span className="truncate text-[13px] text-fg-strong">
                   {spec.title}
                 </span>
-                {spec.origin === "internal" && <InternalBadge />}
+                <OriginBadge origin={spec.origin} />
               </div>
               <p className="mt-1 truncate text-[12px] text-fg-dim">
                 {spec.kind === "project" ? spec.stack.slice(0, 3).join(" · ") : `${spec.org} · ${spec.period}`}
@@ -439,7 +536,7 @@ function Overview() {
       <SpecGrid
         heading="Projects"
         specs={suites.find((s) => s.id === "projects")?.specs ?? []}
-        subtitle="Personal work first; internal tooling built at Sorcero is marked."
+        subtitle="Client and personal work first; internal tooling built at Sorcero is marked."
       />
 
       <h3 className="mt-10 mb-3 text-[11px] tracking-[0.12em] text-fg-faint uppercase">

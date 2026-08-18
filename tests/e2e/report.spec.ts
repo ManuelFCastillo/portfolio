@@ -105,7 +105,7 @@ test.describe("HTML report", () => {
     await expect(overview).toContainText("Sorcero: Tesseract");
   });
 
-  test("personal work leads and internal tooling is flagged", async ({ page }) => {
+  test("work is labelled by where it came from", async ({ page }) => {
     // Scoped by testid: a sibling combinator also swept in the contact block.
     const cards = page
       .locator('[data-testid="spec-grid"][data-heading="projects"]')
@@ -115,13 +115,29 @@ test.describe("HTML report", () => {
     await expect(cards.first()).toContainText("Ask the Library");
     await expect(cards.last()).toContainText("Tesseract");
 
-    // Only the internal ones carry the badge — personal work is the default.
-    const badges = page
-      .locator('[data-testid="spec-grid"][data-heading="projects"]')
-      .getByTestId("internal-badge");
-    await expect(badges).toHaveCount(2);
+    const grid = page.locator(
+      '[data-testid="spec-grid"][data-heading="projects"]',
+    );
+    // Internal tooling is flagged because it cannot be clicked through to.
+    await expect(grid.getByTestId("internal-badge")).toHaveCount(2);
+    // Contract work is flagged because paid delivery is a stronger claim.
+    await expect(grid.getByTestId("contract-badge")).toHaveCount(1);
+    // Personal work is the default and carries nothing.
     await expect(cards.first().getByTestId("internal-badge")).toHaveCount(0);
-    await expect(cards.last().getByTestId("internal-badge")).toHaveCount(1);
+    await expect(cards.first().getByTestId("contract-badge")).toHaveCount(0);
+  });
+
+  test("Fare reads as client work, not a side project", async ({ page }) => {
+    await page
+      .getByTestId("overview")
+      .getByRole("button", { name: /^Fare/ })
+      .click();
+
+    const detail = page.getByTestId("spec-detail");
+    await expect(detail).toHaveAttribute("data-spec", "fare");
+    await expect(detail).toContainText("Fare Technologies");
+    await expect(detail).toContainText("SLVRLeaf");
+    await expect(detail.getByTestId("contract-badge")).toBeVisible();
   });
 
   test("the badge carries through to the spec detail", async ({ page }) => {
@@ -237,5 +253,64 @@ test.describe("shared state between surfaces", () => {
     page,
   }) => {
     await expect(page.getByTestId("tab-report")).toContainText("1");
+  });
+});
+
+/**
+ * Projects nobody can go and run need evidence, not just prose. The
+ * screenshot has to actually load and be enlargeable — an illegible thumbnail
+ * is decoration.
+ */
+test.describe("project screenshots", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+    await settleRun(page);
+    await openReport(page);
+    await page
+      .getByTestId("overview")
+      .getByRole("button", { name: /^Ask the Library/ })
+      .click();
+  });
+
+  test("the reader screenshot loads and is described", async ({ page }) => {
+    const img = page.getByTestId("screenshots").locator("img").first();
+    // next/image lazy-loads, so it must be in view before it will decode.
+    await img.scrollIntoViewIfNeeded();
+    await expect(img).toBeVisible();
+
+    // Actually decoded, not just an <img> tag pointing at a 404.
+    await expect
+      .poll(
+        () => img.evaluate((el) => (el as HTMLImageElement).naturalWidth),
+        { message: "screenshot never decoded" },
+      )
+      .toBeGreaterThan(0);
+
+    await expect(img).toHaveAttribute("alt", /VocabLens/);
+  });
+
+  test("clicking it opens a lightbox that Escape closes", async ({ page }) => {
+    await page.getByTestId("screenshot-open").first().click();
+    const box = page.getByTestId("screenshot-lightbox");
+    await expect(box).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(box).toBeHidden();
+  });
+
+  test("specs without screenshots render nothing extra", async ({ page }) => {
+    // Start clean: the Report tab keeps whatever spec is already open.
+    await page.goto("/");
+    await settleRun(page);
+    await openReport(page);
+    await page
+      .getByTestId("overview")
+      .getByRole("button", { name: /^Sorcero Inc\./ })
+      .click();
+    await expect(page.getByTestId("spec-detail")).toHaveAttribute(
+      "data-spec",
+      "sorcero",
+    );
+    await expect(page.getByTestId("screenshots")).toHaveCount(0);
   });
 });
