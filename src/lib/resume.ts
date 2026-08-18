@@ -755,13 +755,12 @@ const tiengviet: Spec = {
   location: "iOS · SwiftUI",
   period: "In progress",
   brief:
-    "A Vietnamese learning app for iOS. Most apps flatten the language into one accent; this one records the alphabet three times — North, Central (Huế) and South — with a different native speaker for each, because those regions genuinely do not sound alike and a learner who only ever hears Hanoi is unprepared for Saigon. Speaking practice grades pronunciation through Apple's on-device speech recognition, alongside a matching-pair game, phrase and sentence practice, and a bundled Vietnamese–English dictionary. Built in SwiftUI with XCTest unit tests and XCUITest UI automation — a side project held to the same standard as the work.",
+    "A Vietnamese learning app for iOS. Most apps flatten the language into one accent; this one records the alphabet three times — North, Central (Huế) and South — with a different native speaker for each, because those regions genuinely do not sound alike and a learner who only ever hears Hanoi is unprepared for Saigon. Speaking practice grades pronunciation through Apple's on-device speech recognition, alongside a matching-pair game, phrase and sentence practice, and a bundled Vietnamese–English dictionary. Built in SwiftUI, with the game logic pulled into a view model so it could carry real XCTest coverage.",
   stack: [
     "Swift",
     "SwiftUI",
     "Speech Framework",
     "XCTest",
-    "XCUITest",
     "iOS",
   ],
   tests: [
@@ -806,11 +805,11 @@ const tiengviet: Spec = {
     },
     {
       id: "viet-tests",
-      title: "XCTest unit tests and XCUITest UI automation cover it",
+      title: "the game logic is unit-tested in XCTest",
       duration: 2903,
       status: "passed",
-      note: "The game view model has unit tests and the app has UI automation — the same discipline applied to a side project as to production work.",
-      tags: ["XCTest", "XCUITest", "Test Automation"],
+      note: "Pulling the matching-game state into its own view model is what made it testable at all, and it has real XCTest coverage — selection toggling, ordering, and match resolution — rather than the scaffolding Xcode gives you for free.",
+      tags: ["XCTest", "Unit Testing", "MVVM"],
     },
   ],
 };
@@ -1036,6 +1035,7 @@ export const skillGroups: SkillGroup[] = [
     items: [
       "Playwright (TypeScript)",
       "Maestro (iOS)",
+      "XCTest",
       "XCUITest",
       "Selenium",
       "End-to-End (E2E) Testing",
