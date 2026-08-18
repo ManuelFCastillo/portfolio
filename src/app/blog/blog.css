@@ -1,0 +1,639 @@
+/* ------------------------------------------------------------------ */
+/* Blog chrome                                                         */
+/* ------------------------------------------------------------------ */
+/* The portfolio root sets body { overflow: hidden } for the desktop
+   metaphor. Blog pages are long-form documents, so restore scrolling
+   whenever a blog route is mounted. */
+body:has(.blog-root) {
+  overflow: auto;
+}
+
+.blog-root {
+  position: relative;
+  z-index: 2; /* above the ambient grain overlays on body::before/after */
+  min-height: 100vh;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  color: var(--fg);
+}
+
+.blog-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 22px 20px 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12.5px;
+}
+.blog-topbar a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.blog-topbar a:hover {
+  text-decoration: underline;
+}
+.blog-topbar-label {
+  color: var(--fg-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 10.5px;
+}
+
+/* ---- index ---- */
+.blog-index {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px 20px 80px;
+}
+.blog-index h1 {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+  color: var(--fg-strong);
+}
+.blog-index .sub {
+  color: var(--fg-dim);
+  margin-bottom: 40px;
+}
+.post-card {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 20px 22px;
+  text-decoration: none;
+  color: var(--fg);
+  transition: border-color 0.15s;
+}
+.post-card:hover {
+  border-color: var(--accent-dim);
+}
+.post-card .meta {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--fg-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.post-card .meta .k {
+  color: var(--pass);
+}
+.post-card h2 {
+  font-size: 21px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--fg-strong);
+}
+.post-card p {
+  margin: 0;
+  color: var(--fg-dim);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------------ */
+/* Race-condition lab article                                          */
+/* ------------------------------------------------------------------ */
+.race-lab {
+  /* Map the lab's local tokens onto the site palette. */
+  --ink: var(--fg);
+  --ink-strong: var(--fg-strong);
+  --muted: var(--fg-dim);
+  --old: var(--warn);
+  --old-soft: rgba(240, 180, 41, 0.1);
+  --ok: var(--pass);
+  --ok-soft: rgba(63, 207, 142, 0.1);
+  --bad: var(--fail);
+  --accent-soft: rgba(76, 194, 255, 0.1);
+  --code-bg: var(--panel-hi);
+  --stage: var(--bg-raised);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+
+  font-size: 16.5px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.race-lab .wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.race-lab .wide {
+  max-width: 880px;
+  margin: 26px auto;
+  padding: 0 20px;
+}
+.race-lab header.hero {
+  padding: 48px 0 26px;
+}
+.race-lab .eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.race-lab h1 {
+  font-size: clamp(30px, 5.5vw, 44px);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px;
+  text-wrap: balance;
+  color: var(--ink-strong);
+}
+.race-lab .byline {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  color: var(--fg-faint);
+  margin-bottom: 16px;
+}
+.race-lab .lede {
+  font-size: 18.5px;
+  color: var(--muted);
+  max-width: 58ch;
+}
+.race-lab .lede b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.race-lab h2 {
+  font-size: 25px;
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 56px 0 6px;
+  text-wrap: balance;
+  color: var(--ink-strong);
+  scroll-margin-top: 24px;
+}
+.race-lab h2 .num {
+  color: var(--accent);
+}
+.race-lab .time {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin-bottom: 14px;
+}
+.race-lab p {
+  margin: 0 0 16px;
+  max-width: 68ch;
+}
+.race-lab .aside {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 15px;
+  margin: 20px 0;
+}
+.race-lab code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.race-lab pre {
+  background: var(--code-bg);
+  border-radius: 10px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.race-lab pre code {
+  background: none;
+  padding: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.race-lab .cm { color: var(--muted); }
+.race-lab .kw { color: var(--accent); }
+.race-lab .old-c { color: var(--old); }
+.race-lab .ok-c { color: var(--ok); }
+
+.race-lab .lab {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin: 22px 0 8px;
+}
+.race-lab .lab .bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.race-lab .lab .bar .grow { flex: 1; }
+.race-lab .lab .stage {
+  padding: 16px;
+  background: var(--stage);
+}
+.race-lab button {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-hi);
+  color: var(--ink);
+  cursor: pointer;
+}
+.race-lab button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #08131b;
+}
+.race-lab button:hover {
+  border-color: var(--accent);
+}
+.race-lab .log {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  min-height: 52px;
+  margin-top: 12px;
+  white-space: pre-wrap;
+}
+.race-lab .tag {
+  display: inline-block;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+.race-lab .tag.oldt { background: var(--old-soft); color: var(--old); }
+.race-lab .tag.okt { background: var(--ok-soft); color: var(--ok); }
+
+/* rect demo */
+.race-lab #rect-arena {
+  position: relative;
+  height: 200px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.race-lab #rect-box {
+  position: absolute;
+  width: 130px;
+  height: 44px;
+  background: var(--accent);
+  color: #08131b;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.race-lab #rect-read {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.race-lab #rect-read div {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+}
+.race-lab #rect-read b {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.race-lab #rect-read span {
+  font-variant-numeric: tabular-nums;
+}
+
+/* positioning demo */
+.race-lab #pos-frame {
+  position: relative;
+  height: 280px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel);
+}
+.race-lab #pos-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: scroll;
+}
+.race-lab #pos-page {
+  height: 720px;
+  position: relative;
+  background: repeating-linear-gradient(0deg, transparent 0 78px, var(--line) 78px 79px);
+}
+.race-lab #pos-page .ghost {
+  margin: 14px 18px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--code-bg);
+  opacity: 0.7;
+}
+.race-lab #pos-palette {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 210px;
+  background: var(--panel);
+  border: 1px solid var(--accent-dim);
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: var(--shadow);
+  z-index: 3;
+}
+.race-lab #pos-palette .pal-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.race-lab #pos-input {
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--ink);
+}
+.race-lab .dropdown {
+  width: 190px;
+  background: var(--panel-hi);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  font-size: 12.5px;
+  overflow: hidden;
+}
+.race-lab .dropdown div {
+  padding: 6px 11px;
+  border-top: 1px solid var(--line);
+}
+.race-lab .dropdown div:first-child {
+  border-top: 0;
+  background: var(--accent-soft);
+}
+.race-lab #pos-status {
+  margin-top: 12px;
+  font-size: 13px;
+}
+.race-lab #pos-status b {
+  font-variant-numeric: tabular-nums;
+}
+.race-lab .mode-switch {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.race-lab .mode-switch button {
+  border: 0;
+  border-radius: 0;
+}
+.race-lab .mode-switch button.sel {
+  background: var(--accent);
+  color: #08131b;
+}
+
+/* mini jquery */
+.race-lab .snips { display: grid; gap: 10px; }
+.race-lab .snip {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 8px 10px;
+  flex-wrap: wrap;
+}
+.race-lab .snip code { background: none; flex: 1; min-width: 220px; }
+.race-lab .snip .out {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  color: var(--muted);
+  width: 100%;
+}
+.race-lab .snip .out.ok { color: var(--ok); }
+.race-lab .snip .out.warn { color: var(--old); }
+.race-lab #jq-box {
+  width: 150px;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* onion */
+.race-lab #onion { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.race-lab #onion-vis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 190px;
+  height: 150px;
+  position: relative;
+  flex: none;
+}
+.race-lab .ring {
+  position: absolute;
+  border: 2px solid var(--old);
+  border-radius: 12px;
+  opacity: 0.85;
+}
+.race-lab .ring.guarded { border-color: var(--ok); }
+.race-lab #onion-core {
+  position: relative;
+  z-index: 2;
+  background: var(--accent);
+  color: #08131b;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+.race-lab #onion-info { flex: 1; min-width: 220px; font-size: 14.5px; }
+
+/* event loop */
+.race-lab #el-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.race-lab .el-col {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  min-height: 120px;
+}
+.race-lab .el-col h4 {
+  margin: 0 0 8px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.race-lab .el-item {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 9px;
+  margin: 6px 0;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+}
+.race-lab .el-item.q { border-color: var(--old); }
+
+/* race sim */
+.race-lab #race-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.race-lab #race-controls label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.race-lab #race-slider { width: 180px; accent-color: var(--accent); }
+.race-lab #race-t {
+  font-family: var(--font-mono), monospace;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 3ch;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+.race-lab .preset { font-size: 11.5px; padding: 4px 10px; }
+.race-lab #race-track {
+  position: relative;
+  height: 128px;
+  margin-top: 18px;
+  background: var(--code-bg);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.race-lab #race-play {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--fg);
+  opacity: 0.55;
+  z-index: 4;
+}
+.race-lab .lane-label {
+  position: absolute;
+  left: 10px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  z-index: 3;
+}
+.race-lab .tick {
+  position: absolute;
+  top: 34px;
+  width: 2px;
+  height: 18px;
+  background: var(--old);
+  opacity: 0.35;
+}
+.race-lab .tick.hit { opacity: 1; }
+.race-lab #race-deadline {
+  position: absolute;
+  top: 26px;
+  width: 2px;
+  height: 34px;
+  background: var(--bad);
+  z-index: 2;
+}
+.race-lab #race-widget {
+  position: absolute;
+  top: 84px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-left: -6px;
+  opacity: 0.4;
+  z-index: 2;
+}
+.race-lab #race-widget.born { opacity: 1; }
+.race-lab #race-loadbar {
+  position: absolute;
+  top: 88px;
+  left: 0;
+  height: 4px;
+  background: var(--accent);
+  opacity: 0.3;
+}
+.race-lab #race-result {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: none;
+}
+.race-lab #race-result.ok { display: block; background: var(--ok-soft); color: var(--ok); }
+.race-lab #race-result.bad { display: block; background: var(--old-soft); color: var(--old); }
+
+.race-lab details {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin: 10px 0;
+  background: var(--panel);
+}
+.race-lab summary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.race-lab details .a { padding: 0 16px 14px; font-size: 15px; }
+.race-lab footer {
+  margin: 70px 0 50px;
+  color: var(--muted);
+  font-size: 13.5px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.race-lab footer a { color: var(--accent); }

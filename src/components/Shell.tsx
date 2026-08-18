@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import { allTests, profile, totals } from "@/lib/resume";
 import { useRunner } from "@/lib/runner-context";
@@ -103,6 +104,15 @@ export function Shell() {
                 ) : undefined
               }
             />
+            {/* Navigates away from the runner, unlike the view tabs — a real
+                link so it works without JS and supports open-in-new-tab. */}
+            <Link
+              href="/blog"
+              data-testid="tab-field-notes"
+              className="relative flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-fg-dim transition-colors hover:text-fg"
+            >
+              Field Notes
+            </Link>
           </div>
         </div>
 
