@@ -360,6 +360,10 @@ test.describe("project screenshots", () => {
       "true",
     );
     const magnified = (await page.getByTestId("screenshot-zoomed").boundingBox())!;
+    // Zoom stops are multiples of the image's natural size, and both test
+    // viewports fit a 1600px screenshot below 100%, so one click lands on
+    // exactly 100% — full size, and larger than the fitted view.
+    await expect(page.getByTestId("zoom-level")).toHaveText("100%");
     expect(magnified.width).toBeGreaterThan(fitted.width);
 
     // Clicking it again returns to the fitted view rather than closing.
@@ -394,9 +398,16 @@ test.describe("project screenshots", () => {
     );
     if (!scrollable) return; // viewport already fits the source at 1:1
 
-    await expect
-      .poll(() => pane.evaluate((el) => el.scrollLeft))
-      .toBeGreaterThan(0);
+    // Not just "scrolled at all": the clicked point must end up near the
+    // centre. Asserting > 0 passed even while the scroll target was computed
+    // against the pre-zoom layout, because a click far enough right still
+    // produced a positive number.
+    const centred = await pane.evaluate((el) => {
+      const want = 0.85 * el.scrollWidth - el.clientWidth / 2;
+      const max = el.scrollWidth - el.clientWidth;
+      return { got: el.scrollLeft, want: Math.max(0, Math.min(max, want)) };
+    });
+    expect(Math.abs(centred.got - centred.want)).toBeLessThan(40);
 
     // Dragging pans, and does not toggle back to the fitted view. Drag to the
     // right — the view opened near the image's right edge, so panning further
@@ -415,6 +426,52 @@ test.describe("project screenshots", () => {
       "data-magnified",
       "true",
     );
+  });
+
+  test("the zoom controls step, clamp, and report the level", async ({
+    page,
+  }) => {
+    await page.getByTestId("screenshot-open").first().click();
+    const level = page.getByTestId("zoom-level");
+    const zoomIn = page.getByTestId("zoom-in");
+    const zoomOut = page.getByTestId("zoom-out");
+
+    // Fitted reads as its true fraction of full size — under 100% on both test
+    // viewports — and there is nothing to zoom out of yet.
+    // Polled: the fraction is only known once the pane has been measured, so
+    // the label starts as a placeholder rather than a wrong number.
+    const read = async () => Number((await level.textContent())!.replace("%", ""));
+    await expect.poll(read).toBeLessThan(100);
+    const fittedLevel = await read();
+    await expect(zoomOut).toBeDisabled();
+
+    // The first stop above fit is full size.
+    await zoomIn.click();
+    await expect(level).toHaveText("100%");
+    await expect(zoomOut).toBeEnabled();
+
+    await zoomIn.click();
+    await expect(level).toHaveText("150%");
+
+    // And zooming back out bottoms out at fit, not at the smallest stop.
+    await zoomOut.click();
+    await expect(level).toHaveText("100%");
+    await zoomOut.click();
+    await expect(level).toHaveText(`${fittedLevel}%`);
+    await expect(zoomOut).toBeDisabled();
+    await zoomIn.click();
+
+    // Clamps at the top rather than growing without limit. Bounded on the
+    // enabled state: clicking a disabled button makes Playwright wait for
+    // actionability until the test times out.
+    for (let i = 0; i < 20 && (await zoomIn.isEnabled()); i += 1) {
+      await zoomIn.click();
+    }
+    await expect(level).toHaveText("300%");
+    await expect(zoomIn).toBeDisabled();
+
+    // And the controls do not close the overlay when clicked.
+    await expect(page.getByTestId("screenshot-lightbox")).toBeVisible();
   });
 
   test("specs without screenshots render nothing extra", async ({ page }) => {

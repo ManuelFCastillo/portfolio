@@ -24,16 +24,28 @@ import { Phone } from "./Phone";
 import { ProjectCiBadge } from "./CiStatus";
 
 /**
- * Both the thumbnail and the overlay declare the same `sizes`, so next/image
- * resolves them to the same srcset candidate and the overlay paints from cache
- * the instant it opens. They used to differ, which meant the overlay asked for
- * a variant nobody had fetched (an upscaled w=3840 of a 1600px source) and
- * opened on an image with no bytes.
+ * Both the thumbnail and the fitted overlay declare the same `sizes`, so
+ * next/image resolves them to the same srcset candidate and the overlay paints
+ * from cache the instant it opens. They used to differ, which meant the overlay
+ * asked for a variant nobody had fetched (an upscaled w=3840 of a 1600px
+ * source) and opened on an image with no bytes.
  */
 const SHOT_SIZES = "(max-width: 900px) 100vw, 720px";
 
 /** Past this much movement a pointer gesture is a pan, not a click. */
 const DRAG_SLOP_PX = 4;
+
+/**
+ * Zoom stops, as multiples of the image's *natural* size — the scale every
+ * image viewer means by "100%". Fit is a separate state below them: on a
+ * 1280-wide screen a 1600px screenshot fits at ~74%, so "zoom in" means going
+ * up to 100%; on a 1920-wide screen it already fits at ~116%, and the first
+ * stop above that is 150%. Measuring zoom against the fitted size instead
+ * produced the nonsense of a "100%" view that was not full size and a "250%"
+ * view of an image with nowhere near that much detail in it.
+ */
+const ZOOM_STOPS = [1, 1.5, 2, 3];
+const MAX_STOP = ZOOM_STOPS[ZOOM_STOPS.length - 1];
 
 /**
  * Screenshots for projects nobody can go and run. Rendered small inline, with
@@ -43,11 +55,8 @@ const DRAG_SLOP_PX = 4;
  *
  * Enlarging is two stages, because "fits the screen" and "readable" are not the
  * same thing. The overlay first fits the whole image to the viewport; clicking
- * it again magnifies to 1:1 and lets you pan, centred on whatever you clicked.
- * On a phone that second step is roughly a 4x jump. On a wide desktop it is
- * closer to 1.3x, because the source is 1600px and anything past 1:1 would be
- * interpolation rather than detail — the honest ceiling is the screenshot, not
- * the viewer.
+ * it again goes to the next zoom stop above that, centred on whatever you
+ * clicked, and from there you can pan by dragging or zoom with the wheel.
  *
  * The overlay is portalled to <body> rather than rendered in place. `position:
  * fixed` is only viewport-relative while no ancestor establishes a containing
@@ -60,15 +69,38 @@ const DRAG_SLOP_PX = 4;
  */
 function Shots({ shots }: { shots: Screenshot[] }) {
   const [zoomed, setZoomed] = useState<Screenshot | null>(null);
-  const [magnified, setMagnified] = useState(false);
+  /** Width the image occupies when fitted, in CSS pixels. 0 until measured. */
+  const [fitted, setFitted] = useState(0);
+  /** Natural-size multiple, or null while fitted. */
+  const [stop, setStop] = useState<number | null>(null);
+
   const paneRef = useRef<HTMLDivElement | null>(null);
   const pan = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   const panned = useRef(false);
+  const focus = useRef<{ rx: number; ry: number } | null>(null);
 
   const close = useCallback(() => setZoomed(null), []);
 
-  // A newly opened screenshot always starts fitted.
-  useEffect(() => setMagnified(false), [zoomed]);
+  const fitScale = zoomed && fitted ? fitted / zoomed.width : 1;
+  const scale = stop ?? fitScale;
+  const magnified = stop !== null;
+  const displayWidth = zoomed ? Math.round(zoomed.width * scale) : 0;
+
+  // Measure the fitted size from the pane, so zoom levels can be expressed
+  // against the image's own pixels rather than against the viewport.
+  useEffect(() => {
+    if (!zoomed) return;
+    const measure = () => {
+      const pane = paneRef.current;
+      if (!pane) return;
+      setFitted(
+        Math.min(pane.clientWidth, pane.clientHeight * (zoomed.width / zoomed.height)),
+      );
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [zoomed]);
 
   // Escape closes from anywhere, and the page behind must not scroll while the
   // overlay owns the screen.
@@ -84,7 +116,30 @@ function Shots({ shots }: { shots: Screenshot[] }) {
     };
   }, [zoomed, close]);
 
-  function toggleMagnify(e: React.MouseEvent<HTMLElement>) {
+  /**
+   * Applied from an effect rather than a rAF: `scrollWidth` has to be read
+   * after React has committed the new size, and rAF — even two of them — can
+   * still land on the old layout. The target then computes against the fitted
+   * width, comes out negative, clamps to zero, and the zoom silently jumps to
+   * the top-left corner instead of the detail that was clicked.
+   */
+  useEffect(() => {
+    const target = focus.current;
+    const pane = paneRef.current;
+    if (!target || !pane) return;
+    focus.current = null;
+    pane.scrollLeft = target.rx * pane.scrollWidth - pane.clientWidth / 2;
+    pane.scrollTop = target.ry * pane.scrollHeight - pane.clientHeight / 2;
+  }, [stop]);
+
+  /** First stop strictly above `from`, so zooming in always grows the image. */
+  const stopAbove = (from: number) =>
+    ZOOM_STOPS.find((z) => z > from + 0.005) ?? MAX_STOP;
+  /** Nearest stop below `from`, or null to fall back to fit. */
+  const stopBelow = (from: number) =>
+    [...ZOOM_STOPS].reverse().find((z) => z < from - 0.005 && z > fitScale) ?? null;
+
+  function toggleZoom(e: React.MouseEvent<HTMLElement>) {
     // The backdrop closes the overlay; the image itself must not.
     e.stopPropagation();
 
@@ -93,23 +148,33 @@ function Shots({ shots }: { shots: Screenshot[] }) {
       panned.current = false;
       return;
     }
+    if (!zoomed) return;
     if (magnified) {
-      setMagnified(false);
+      setStop(null);
       return;
     }
 
     const box = e.currentTarget.getBoundingClientRect();
-    const rx = box.width ? (e.clientX - box.left) / box.width : 0.5;
-    const ry = box.height ? (e.clientY - box.top) / box.height : 0.5;
-    setMagnified(true);
+    focus.current = {
+      rx: box.width ? (e.clientX - box.left) / box.width : 0.5,
+      ry: box.height ? (e.clientY - box.top) / box.height : 0.5,
+    };
+    setStop(stopAbove(fitScale));
+  }
 
-    // Centre on whatever was clicked, once the magnified layout exists.
-    requestAnimationFrame(() => {
-      const pane = paneRef.current;
-      if (!pane) return;
-      pane.scrollLeft = rx * pane.scrollWidth - pane.clientWidth / 2;
-      pane.scrollTop = ry * pane.scrollHeight - pane.clientHeight / 2;
-    });
+  function onWheel(e: React.WheelEvent<HTMLElement>) {
+    const pane = paneRef.current;
+    if (!zoomed || !pane) return;
+    const next = Math.min(MAX_STOP, Math.max(fitScale, scale * (1 - e.deltaY / 400)));
+    if (Math.abs(next - scale) < 0.001) return;
+
+    // Zoom about the pointer, not the top-left corner.
+    const box = pane.getBoundingClientRect();
+    focus.current = {
+      rx: (pane.scrollLeft + e.clientX - box.left) / pane.scrollWidth,
+      ry: (pane.scrollTop + e.clientY - box.top) / pane.scrollHeight,
+    };
+    setStop(next <= fitScale + 0.001 ? null : next);
   }
 
   function startPan(e: React.PointerEvent<HTMLElement>) {
@@ -144,7 +209,14 @@ function Shots({ shots }: { shots: Screenshot[] }) {
         {shots.map((shot) => (
           <figure key={shot.src}>
             <button
-              onClick={() => setZoomed(shot)}
+              // Reset the zoom here rather than in an effect keyed on `zoomed`:
+              // a setState in an effect body is a cascading render, and the
+              // only moment a screenshot needs to be fitted is the moment it
+              // opens.
+              onClick={() => {
+                setStop(null);
+                setZoomed(shot);
+              }}
               data-testid="screenshot-open"
               aria-label={`Enlarge screenshot: ${shot.alt}`}
               className="group block w-full overflow-hidden rounded-lg border border-line transition-colors hover:border-accent/40"
@@ -178,11 +250,12 @@ function Shots({ shots }: { shots: Screenshot[] }) {
             onClick={close}
             tabIndex={-1}
             ref={(el) => el?.focus()}
-            className="fixed inset-0 z-[1000] bg-bg/90 p-4 backdrop-blur-sm sm:p-8"
+            className="fixed inset-0 z-[1000] bg-bg/95 p-4 backdrop-blur-sm sm:p-8"
           >
             <div
               ref={paneRef}
               data-testid="screenshot-pane"
+              onWheel={onWheel}
               className={
                 magnified
                   ? "h-full w-full overflow-auto overscroll-contain"
@@ -191,15 +264,15 @@ function Shots({ shots }: { shots: Screenshot[] }) {
             >
               <button
                 type="button"
-                onClick={toggleMagnify}
+                onClick={toggleZoom}
                 onPointerDown={startPan}
                 onPointerMove={movePan}
                 onPointerUp={endPan}
                 onPointerCancel={endPan}
                 aria-label={
                   magnified
-                    ? "Zoom out to fit the screen"
-                    : "Zoom in to full size"
+                    ? "Zoom the screenshot back out to fit"
+                    : "Zoom in on the screenshot"
                 }
                 className={
                   magnified
@@ -208,16 +281,18 @@ function Shots({ shots }: { shots: Screenshot[] }) {
                 }
               >
                 {/*
-                  Sized from the overlay rather than from the image's intrinsic
-                  size: with width and height both auto, an image that has not
-                  decoded yet lays out at 2x2, so "enlarge" visibly did nothing
-                  until the bytes arrived. Magnified, it is pinned to its natural
-                  size and `sizes` asks for a candidate at least that wide —
-                  otherwise a DPR-1 browser would blow up the 720px thumbnail
-                  variant and the zoom would be blurrier than the fit. Changing
-                  `sizes` re-runs srcset selection on the same element rather
-                  than remounting it, so the already-loaded bytes stay on screen
-                  while the larger candidate arrives instead of flashing blank.
+                  Fitted, the element is sized from the overlay: with width and
+                  height both auto, an image that has not decoded yet lays out
+                  at 2x2, so "enlarge" visibly did nothing until the bytes
+                  arrived. Zoomed, it is sized from the scale, while `sizes`
+                  asks for the *source* width rather than the on-screen width. A
+                  DPR-1 phone would otherwise blow up the 720px thumbnail
+                  variant and the zoom would come out blurrier than the fit —
+                  and asking for more than the source holds only buys a slow
+                  re-optimize that Next caps at the source width anyway, blanking
+                  the image while it runs. Changing `sizes` re-runs srcset
+                  selection on the same element rather than remounting it, so
+                  loaded bytes stay on screen while a larger candidate arrives.
                 */}
                 <Image
                   src={zoomed.src}
@@ -228,7 +303,14 @@ function Shots({ shots }: { shots: Screenshot[] }) {
                   draggable={false}
                   data-testid="screenshot-zoomed"
                   data-magnified={magnified ? "true" : "false"}
-                  style={magnified ? { width: zoomed.width, height: zoomed.height } : undefined}
+                  style={
+                    magnified
+                      ? {
+                          width: displayWidth,
+                          height: Math.round(displayWidth * (zoomed.height / zoomed.width)),
+                        }
+                      : undefined
+                  }
                   className={
                     magnified
                       ? "max-w-none rounded-lg border border-line select-none"
@@ -237,13 +319,47 @@ function Shots({ shots }: { shots: Screenshot[] }) {
                 />
               </button>
             </div>
-            <button
-              onClick={close}
-              aria-label="Close screenshot"
-              className="absolute top-4 right-4 z-10 rounded border border-line bg-panel/90 px-3 py-1.5 text-[13px] text-fg-dim hover:text-accent"
+
+            <div
+              className="absolute top-4 right-4 z-10 flex items-center gap-1 rounded border border-line bg-panel/95 p-1 text-[13px] text-fg-dim"
+              onClick={(e) => e.stopPropagation()}
             >
-              Close
-            </button>
+              <button
+                onClick={() => setStop(stopBelow(scale))}
+                disabled={!magnified}
+                aria-label="Zoom out"
+                data-testid="zoom-out"
+                className="h-7 w-7 rounded hover:bg-bg-raised hover:text-accent disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-fg-dim"
+              >
+                −
+              </button>
+              <span
+                data-testid="zoom-level"
+                title={magnified ? undefined : "Fitted to the window"}
+                className="w-12 text-center tabular-nums text-fg-faint"
+              >
+                {/* Until the pane is measured the fitted fraction is unknown;
+                    showing "100%" for that frame would be a lie that then
+                    snaps to 74%. */}
+                {fitted ? `${Math.round(scale * 100)}%` : "—"}
+              </span>
+              <button
+                onClick={() => setStop(stopAbove(scale))}
+                disabled={scale >= MAX_STOP - 0.005}
+                aria-label="Zoom in"
+                data-testid="zoom-in"
+                className="h-7 w-7 rounded hover:bg-bg-raised hover:text-accent disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-fg-dim"
+              >
+                +
+              </button>
+              <button
+                onClick={close}
+                aria-label="Close screenshot"
+                className="ml-1 rounded px-2 py-1 hover:bg-bg-raised hover:text-accent"
+              >
+                Esc ✕
+              </button>
+            </div>
           </div>,
           document.body,
         )}
