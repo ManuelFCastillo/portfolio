@@ -71,7 +71,9 @@ function fromPublished(s: PublishedStatus): CiRun {
     durationMs: s.durationMs ?? null,
     passed: s.passed ?? null,
     failed: s.failed ?? null,
-    source: "build",
+    // Null counts mean the build fetched this from the Actions API rather
+    // than from a Playwright report, so label it that way in the ci command.
+    source: s.passed == null ? "api" : "build",
   };
 }
 

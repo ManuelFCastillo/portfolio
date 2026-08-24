@@ -32,10 +32,12 @@ async function fromGithub() {
   const ended = Date.parse(run.updated_at);
   return {
     conclusion: run.conclusion ?? "unknown",
-    passed: 0,
-    failed: 0,
-    flaky: 0,
-    skipped: 0,
+    // The Actions API does not expose test counts. Null means "unknown" and
+    // the UI omits the row; 0 would falsely read as "the suite ran nothing".
+    passed: null,
+    failed: null,
+    flaky: null,
+    skipped: null,
     durationMs: ended > started ? ended - started : 0,
     sha: run.head_sha ?? "",
     branch: run.head_branch ?? "main",

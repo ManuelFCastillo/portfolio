@@ -172,6 +172,29 @@ test.describe("ci command", () => {
     ).toBeVisible();
   });
 
+  test("a build-time status with unknown counts never says 0 passed", async ({
+    page,
+  }) => {
+    // Regression: on Vercel the prebuild writes this file from the Actions
+    // API, which has no test counts. passed: 0 rendered as "0 passed" — on
+    // the one page whose premise is that the tests are real.
+    await stubStatusFile(page, {
+      ...published,
+      passed: null,
+      failed: null,
+      flaky: null,
+      skipped: null,
+    });
+    await page.goto("/");
+    await settleRun(page);
+    await runCommand(page, "ci");
+
+    const report = page.getByTestId("ci-report");
+    await expect(report).toContainText("success");
+    await expect(report).not.toContainText("0 passed");
+    await expect(report).toContainText("via the Actions API");
+  });
+
   test("omits test counts when falling back to the API", async ({ page }) => {
     await withoutStatusFile(page);
     await stubCi(page, runFixture());
