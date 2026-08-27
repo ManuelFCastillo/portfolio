@@ -115,12 +115,26 @@ undefined symbol: __res_search. Exiting.`}</div>
           never gets loaded, then forcing that library into the process should flip the result, with
           zero other changes:
         </p>
-        <div className="log">{`$ falco -o engine.kind=modern_ebpf
-Runtime error: cannot load plugin ... undefined symbol: __res_search. Exiting.
+      </div>
 
-$ LD_PRELOAD=/lib/x86_64-linux-gnu/libresolv.so.2 falco -o engine.kind=modern_ebpf
-...
-Opening 'syscall' source with modern BPF probe.`}</div>
+      <div className="wide">
+        <div className="lab">
+          <div className="bar">
+            Lab &middot; run the experiment yourself <span className="grow"></span>
+            <span>same binary, one variable</span>
+          </div>
+          <div className="stage">
+            <div className="lk-controls">
+              <button className="preset primary" id="xp-stock">$ falco</button>
+              <button className="preset" id="xp-preload">$ LD_PRELOAD=libresolv.so.2 falco</button>
+              <button className="preset ghost" id="xp-clear">clear</button>
+            </div>
+            <div className="log xp-log" id="xp-out">{`// choose a command to run`}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="wrap">
         <p>Same binary. Same config. One environment variable. Broken to working.</p>
         <p>
           <b>What you just saw:</b> the symbol exists on this system, in{" "}
@@ -140,12 +154,25 @@ Opening 'syscall' source with modern BPF probe.`}</div>
           entries, which is what the dynamic loader walks at <code>dlopen</code> time. Here&rsquo;s
           the shipped plugin&rsquo;s:
         </p>
-        <div className="log">{`$ readelf -d libcontainer.so | grep NEEDED
- (NEEDED)  Shared library: [libc.so.6]
- (NEEDED)  Shared library: [ld-linux-x86-64.so.2]
+      </div>
 
-$ readelf --dyn-syms -W libcontainer.so | grep -w UND | grep res_search
- 113: 0000000000000000  0 NOTYPE  GLOBAL DEFAULT  UND __res_search`}</div>
+      <div className="wide">
+        <div className="lab">
+          <div className="bar">
+            Lab &middot; inspect the binary <span className="grow"></span>
+            <span>readelf, both worlds</span>
+          </div>
+          <div className="stage">
+            <div className="lk-controls">
+              <button className="preset primary" id="re-shipped">shipped .so</button>
+              <button className="preset" id="re-fixed">patched .so</button>
+            </div>
+            <div className="log" id="re-out"></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="wrap">
         <p>
           There&rsquo;s the whole bug in four lines: the binary says &ldquo;I need{" "}
           <code>__res_search</code>&rdquo; and simultaneously says &ldquo;I depend on nothing that
@@ -159,6 +186,33 @@ $ readelf --dyn-syms -W libcontainer.so | grep -w UND | grep res_search
           machine. On glibc 2.28 through 2.33 (Debian 11, RHEL 8, Ubuntu 20.04), the symbol lives
           only in <code>libresolv.so.2</code>, which nobody asked for. <code>dlopen</code> fails.
         </p>
+      </div>
+
+      <div className="wide">
+        <div className="lab">
+          <div className="bar">
+            Lab &middot; where does <code>__res_search</code> live?
+            <span className="grow"></span>
+            <span>drag through glibc history</span>
+          </div>
+          <div className="stage">
+            <input
+              type="range"
+              id="gl-range"
+              min={0}
+              max={4}
+              step={1}
+              defaultValue={2}
+              aria-label="glibc version"
+            />
+            <div className="gl-head" id="gl-head"></div>
+            <div className="gl-boxes" id="gl-boxes"></div>
+            <div className="gl-verdict" id="gl-verdict"></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="wrap">
         <p>
           This is why the bug survived in shipped releases for a year, and why two earlier bug
           reports went stale without a fix: <b>everyone who could reproduce it was on old glibc;
@@ -506,4 +560,120 @@ function initLab(root: HTMLElement) {
 
   renderLine();
   renderState();
+
+  /* ---- lab: the LD_PRELOAD experiment, runnable ---- */
+  const xpOut = root.querySelector<HTMLElement>("#xp-out");
+  let xpBusy = false;
+  const XP: Record<string, { cmd: string; lines: [string, string][] }> = {
+    stock: {
+      cmd: "$ falco -o engine.kind=modern_ebpf",
+      lines: [
+        ["Falco version: 0.44.1 (x86_64)", ""],
+        ["Falco initialized with configuration files:", ""],
+        ["   /etc/falco/falco.yaml | schema validation: ok", ""],
+        ["Loading rules from: /etc/falco/falco_rules.yaml | ok", ""],
+        [
+          "Runtime error: cannot load plugin /usr/share/falco/plugins/libcontainer.so: undefined symbol: __res_search. Exiting.",
+          "xp-bad",
+        ],
+        ["[exit code 1]", "xp-bad"],
+      ],
+    },
+    preload: {
+      cmd: "$ LD_PRELOAD=/lib/x86_64-linux-gnu/libresolv.so.2 falco -o engine.kind=modern_ebpf",
+      lines: [
+        ["Falco version: 0.44.1 (x86_64)", ""],
+        ["Falco initialized with configuration files:", ""],
+        ["   /etc/falco/falco.yaml | schema validation: ok", ""],
+        ["Loading rules from: /etc/falco/falco_rules.yaml | ok", ""],
+        ["Loaded event sources: syscall", ""],
+        ["Opening 'syscall' source with modern BPF probe.", "xp-good"],
+        ["[running]", "xp-good"],
+      ],
+    },
+  };
+  function runXp(which: string) {
+    if (xpBusy || !xpOut) return;
+    xpBusy = true;
+    const job = XP[which];
+    xpOut.innerHTML = `<span class="kw">${job.cmd}</span>\n`;
+    job.lines.forEach(([line, cls], i) => {
+      setTimeout(() => {
+        const span = document.createElement("span");
+        if (cls) span.className = cls;
+        span.textContent = line + "\n";
+        xpOut!.appendChild(span);
+        if (i === job.lines.length - 1) xpBusy = false;
+      }, 240 * (i + 1));
+    });
+  }
+  root.querySelector("#xp-stock")?.addEventListener("click", () => runXp("stock"));
+  root.querySelector("#xp-preload")?.addEventListener("click", () => runXp("preload"));
+  root.querySelector("#xp-clear")?.addEventListener("click", () => {
+    if (!xpBusy && xpOut) xpOut.textContent = "// choose a command to run";
+  });
+
+  /* ---- lab: readelf inspector ---- */
+  const reOut = root.querySelector<HTMLElement>("#re-out");
+  function renderRe(fixed: boolean) {
+    if (!reOut) return;
+    reOut.innerHTML = [
+      '<span class="kw">$ readelf -d libcontainer.so | grep NEEDED</span>',
+      fixed
+        ? ' <span class="re-add">(NEEDED)  Shared library: [libresolv.so.2]</span>'
+        : null,
+      " (NEEDED)  Shared library: [libc.so.6]",
+      " (NEEDED)  Shared library: [ld-linux-x86-64.so.2]",
+      "",
+      '<span class="kw">$ readelf --dyn-syms -W libcontainer.so | grep res_search</span>',
+      fixed
+        ? ' 34: 0000000000000000  0 FUNC  GLOBAL DEFAULT  UND <span class="re-add">__res_search@GLIBC_2.2.5</span>'
+        : ' 113: 0000000000000000  0 NOTYPE  GLOBAL DEFAULT  UND __res_search',
+      fixed
+        ? '<span class="re-note">// dependency declared, symbol versioned: dlopen resolves it anywhere</span>'
+        : '<span class="re-note">// needs the symbol, depends on nothing that provides it</span>',
+    ]
+      .filter((l) => l !== null)
+      .join("\n");
+    root.querySelector("#re-shipped")?.classList.toggle("primary", !fixed);
+    root.querySelector("#re-fixed")?.classList.toggle("primary", fixed);
+  }
+  renderRe(false);
+  root.querySelector("#re-shipped")?.addEventListener("click", () => renderRe(false));
+  root.querySelector("#re-fixed")?.addEventListener("click", () => renderRe(true));
+
+  /* ---- lab: glibc timeline ---- */
+  const STOPS = [
+    { v: "2.27", d: "Ubuntu 18.04" },
+    { v: "2.28", d: "RHEL 8 · Rocky 8 · Alma 8" },
+    { v: "2.31", d: "Debian 11 · Ubuntu 20.04" },
+    { v: "2.35", d: "Ubuntu 22.04" },
+    { v: "2.39", d: "Ubuntu 24.04" },
+  ];
+  const glHead = root.querySelector<HTMLElement>("#gl-head");
+  const glBoxes = root.querySelector<HTMLElement>("#gl-boxes");
+  const glVerdict = root.querySelector<HTMLElement>("#gl-verdict");
+  function renderGl(i: number) {
+    if (!glHead || !glBoxes || !glVerdict) return;
+    const stop = STOPS[i];
+    const merged = parseFloat(stop.v) >= 2.34;
+    glHead.innerHTML = `glibc <b>${stop.v}</b> &nbsp;·&nbsp; ${stop.d}`;
+    glBoxes.innerHTML = `
+      <div class="gl-box">
+        <div class="gl-t">libresolv.so.2</div>
+        <span class="gl-chip">__res_search</span>
+        <div class="gl-note">${merged ? "kept as a compat stub" : "the only home of the symbol"}</div>
+      </div>
+      <div class="gl-box${merged ? " gl-hot" : ""}">
+        <div class="gl-t">libc.so.6 <span class="gl-always">always loaded</span></div>
+        ${merged ? '<span class="gl-chip">__res_search</span>' : '<span class="gl-none">(no resolver symbols)</span>'}
+        <div class="gl-note">${merged ? "libresolv was merged in with 2.34" : "resolver not merged yet"}</div>
+      </div>`;
+    glVerdict.innerHTML = merged
+      ? '<span class="xp-good">dlopen(libcontainer.so): works — libc papers over the missing dependency</span>'
+      : '<span class="xp-bad">dlopen(libcontainer.so): FAILS — undefined symbol: __res_search</span>';
+  }
+  const glRange = root.querySelector<HTMLInputElement>("#gl-range");
+  glRange?.addEventListener("input", () => renderGl(Number(glRange.value)));
+  renderGl(2);
 }
