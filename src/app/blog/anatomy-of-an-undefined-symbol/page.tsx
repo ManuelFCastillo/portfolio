@@ -10,6 +10,15 @@ export const metadata: Metadata = {
     title: "The Anatomy of an Undefined Symbol",
     description:
       "One undefined symbol, one missing link flag, and a linker you can step through yourself.",
+    url: "https://www.mannycastillo.dev/blog/anatomy-of-an-undefined-symbol",
+    images: [
+      {
+        url: "https://www.mannycastillo.dev/blog/undefined-symbol.png",
+        width: 1200,
+        height: 630,
+        alt: "A chain of linked blue blocks reaching toward a missing dashed block",
+      },
+    ],
   },
 };
 
