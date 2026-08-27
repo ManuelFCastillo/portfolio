@@ -68,7 +68,7 @@ test.describe("suite execution", () => {
 
     await expect(
       block.getByRole("link", { name: /linkedin/ }),
-    ).toHaveAttribute("href", "https://linkedin.com/in/manuelfcastillo");
+    ).toHaveAttribute("href", "https://www.linkedin.com/in/mfcastillo");
   });
 
   test("Escape skips the animation instead of dropping output", async ({

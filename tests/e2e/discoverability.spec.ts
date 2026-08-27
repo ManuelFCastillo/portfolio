@@ -22,7 +22,7 @@ test.describe("search engines", () => {
     expect(html).toContain("University of Massachusetts");
     expect(html).toContain("Playwright");
     // LinkedIn stays in the clear and carries the contact signal.
-    expect(html).toContain("linkedin.com/in/manuelfcastillo");
+    expect(html).toContain("linkedin.com/in/mfcastillo");
   });
 
   test("structured data identifies a Person", async ({ request, baseURL }) => {
