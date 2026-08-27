@@ -193,12 +193,25 @@ export function FieldNotesBg() {
           const d = Math.abs(q.t - a.t);
           if (d < bestD) { bestD = d; best = q; }
         }
-        if (best) bonds.push({ a, b: best, age: 0, life: 150 + Math.random() * 120 });
+        if (best) {
+          // Guard the spawn too: partners must be rung-distance apart on
+          // screen, not merely close along the axis.
+          const sdx = a.x - best.x, sdy = a.y - best.y;
+          if (sdx * sdx + sdy * sdy < (R * 2.2) ** 2) {
+            bonds.push({ a, b: best, age: 0, life: 150 + Math.random() * 120 });
+          }
+        }
       }
       for (let i = bonds.length - 1; i >= 0; i--) {
         const bond = bonds[i];
         bond.age += dt;
         if (bond.age >= bond.life) { bonds.splice(i, 1); continue; }
+        // A particle's t wraps from the end of the stream back to the
+        // start; a bonded partner teleporting across the screen would
+        // stretch the line into a long horizontal shot. The moment the
+        // endpoints exceed plausible rung length, the bond is over.
+        const bdx = bond.a.x - bond.b.x, bdy = bond.a.y - bond.b.y;
+        if (bdx * bdx + bdy * bdy > (R * 2.6) ** 2) { bonds.splice(i, 1); continue; }
         const env = Math.sin(Math.PI * (bond.age / bond.life)); // fade in, out
         const grad = ctx!.createLinearGradient(bond.a.x, bond.a.y, bond.b.x, bond.b.y);
         grad.addColorStop(0, amber);
