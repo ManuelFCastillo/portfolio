@@ -25,7 +25,7 @@ export function LinkerLab() {
     <article className="race-lab linker-lab" ref={rootRef}>
       <div className="wrap">
         <header className="hero">
-          <div className="eyebrow">field notes &middot; falcosecurity/plugins &middot; issue #1500</div>
+          <div className="eyebrow"><a href="/blog">field notes</a> &middot; falcosecurity/plugins &middot; issue #1500</div>
           <h1>The Anatomy of an Undefined Symbol</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
           <div className="hero-art">

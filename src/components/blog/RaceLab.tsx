@@ -25,7 +25,7 @@ export function RaceLab() {
     <article className="race-lab" ref={rootRef}>
       <div className="wrap">
         <header className="hero">
-          <div className="eyebrow">field notes &middot; sugarlabs/musicblocks &middot; issue #8069</div>
+          <div className="eyebrow"><a href="/blog">field notes</a> &middot; sugarlabs/musicblocks &middot; issue #8069</div>
           <h1>The Anatomy of a Race Condition</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
           <div className="hero-art">

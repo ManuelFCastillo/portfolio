@@ -15,7 +15,7 @@ export default function BlogLayout({
     <div className="blog-root">
       <nav className="blog-topbar" aria-label="Blog">
         <Link href="/">&larr; mannycastillo.dev</Link>
-        <span className="blog-topbar-label">field notes</span>
+        <Link className="blog-topbar-label" href="/blog">field notes</Link>
       </nav>
       {children}
     </div>
