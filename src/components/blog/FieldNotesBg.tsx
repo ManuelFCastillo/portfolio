@@ -21,14 +21,31 @@ export function FieldNotesBg() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    // Wide-gamut when the display and browser allow it: a Display P3
+    // canvas with P3 color strings gives the glows chroma that sRGB
+    // literally cannot express; everything clamps gracefully elsewhere.
+    let ctx: CanvasRenderingContext2D | null = null;
+    let p3 = false;
+    try {
+      ctx = canvas.getContext("2d", { colorSpace: "display-p3" });
+      p3 =
+        ctx?.getContextAttributes?.().colorSpace === "display-p3" &&
+        typeof CSS !== "undefined" &&
+        CSS.supports("color", "color(display-p3 1 0 0)");
+    } catch {
+      /* older engines: plain sRGB context below */
+    }
+    if (!ctx) ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const styles = getComputedStyle(document.documentElement);
-    const blue = styles.getPropertyValue("--accent").trim() || "#4cc2ff";
     // Amber leads, echoing the particle-wave art direction; blue answers.
-    const amber = "#f0a848";
+    const amber = p3 ? "color(display-p3 1 0.68 0.22)" : "#f0a848";
+    const blue = p3
+      ? "color(display-p3 0.22 0.76 1)"
+      : styles.getPropertyValue("--accent").trim() || "#4cc2ff";
+    const dustC = p3 ? "color(display-p3 0.87 0.74 0.55)" : "#d9b98c";
 
     // Pre-rendered glow sprite per color: a radial falloff drawn once,
     // then stamped with drawImage — an order of magnitude cheaper than
@@ -45,16 +62,26 @@ export function FieldNotesBg() {
       g.fillRect(0, 0, 64, 64);
       return s;
     }
-    const sprites = [sprite(amber), sprite(blue), sprite("#d9b98c")];
+    const sprites = [sprite(amber), sprite(blue), sprite(dustC)];
 
     interface P {
       t: number;      // position along the helix axis, 0..1
-      strand: number; // 0 = blue strand, 1 = green strand, 2 = dust
+      strand: number; // 0 = amber strand, 1 = blue strand, 2 = dust
       jitter: number; // per-particle phase noise
       size: number;
       dx: number;     // dust drift
       dy: number;
+      x: number;      // last drawn position, for bonds
+      y: number;
+      depth: number;
     }
+
+    // Ephemeral bonds: a particle on each strand pairs up, the line rides
+    // with them as the helix turns, then fades. Data forming and releasing
+    // relationships.
+    interface Bond { a: P; b: P; age: number; life: number; }
+    const bonds: Bond[] = [];
+    let bondTimer = 0;
 
     const N = 260;
     const particles: P[] = [];
@@ -67,6 +94,9 @@ export function FieldNotesBg() {
         size: dust ? 0.5 + Math.random() * 0.9 : 0.8 + Math.random() * 1.4,
         dx: (Math.random() - 0.5) * 0.02,
         dy: (Math.random() - 0.5) * 0.012,
+        x: 0,
+        y: 0,
+        depth: 1,
       });
     }
 
@@ -114,23 +144,7 @@ export function FieldNotesBg() {
       const flow = dt * (0.010 + 0.008 * energy);
       const alpha = 0.5 + 0.3 * energy;
 
-      // Rungs between the strands, drawn beneath the particles.
-      ctx!.globalAlpha = 0.09 + 0.07 * energy;
-      ctx!.strokeStyle = amber;
-      ctx!.lineWidth = 1;
-      for (let k = 0; k < 14; k++) {
-        const t = ((k / 14 + time * 0.010) % 1 + 1) % 1;
-        const phase = t * TWISTS * Math.PI * 2 + time * 0.35;
-        const bx = ox + ax * t, by = oy + ay * t;
-        const off = Math.sin(phase) * R;
-        const depth = Math.cos(phase);              // -1..1, "camera" depth
-        if (Math.abs(depth) > 0.55) continue;       // skip edge-on rungs
-        ctx!.beginPath();
-        ctx!.moveTo(bx + ux * off, by + uy * off);
-        ctx!.lineTo(bx - ux * off, by - uy * off);
-        ctx!.stroke();
-      }
-
+      // Pass 1: physics — update and remember every particle's position.
       for (const p of particles) {
         let x: number, y: number, depth = 1;
         if (p.strand === 2) {
@@ -159,10 +173,52 @@ export function FieldNotesBg() {
           y += (ddy / d) * pull;
         }
 
+        p.x = x;
+        p.y = y;
+        p.depth = depth;
+      }
+
+      // Pass 2: bonds beneath the particles. Spawn one every so often
+      // between strand partners at a similar point along the axis, so the
+      // line reads as a rung that turns with the helix.
+      bondTimer -= dt;
+      if (bondTimer <= 0 && bonds.length < 9) {
+        bondTimer = 28 + Math.random() * 55 - energy * 18; // frames
+        const as = particles.filter((q) => q.strand === 0);
+        const a = as[(Math.random() * as.length) | 0];
+        let best: P | null = null;
+        let bestD = 0.055;
+        for (const q of particles) {
+          if (q.strand !== 1) continue;
+          const d = Math.abs(q.t - a.t);
+          if (d < bestD) { bestD = d; best = q; }
+        }
+        if (best) bonds.push({ a, b: best, age: 0, life: 150 + Math.random() * 120 });
+      }
+      for (let i = bonds.length - 1; i >= 0; i--) {
+        const bond = bonds[i];
+        bond.age += dt;
+        if (bond.age >= bond.life) { bonds.splice(i, 1); continue; }
+        const env = Math.sin(Math.PI * (bond.age / bond.life)); // fade in, out
+        const grad = ctx!.createLinearGradient(bond.a.x, bond.a.y, bond.b.x, bond.b.y);
+        grad.addColorStop(0, amber);
+        grad.addColorStop(1, blue);
+        ctx!.strokeStyle = grad;
+        ctx!.lineWidth = 1;
+        ctx!.globalAlpha =
+          env * (0.16 + 0.14 * energy) * Math.min(bond.a.depth, bond.b.depth);
+        ctx!.beginPath();
+        ctx!.moveTo(bond.a.x, bond.a.y);
+        ctx!.lineTo(bond.b.x, bond.b.y);
+        ctx!.stroke();
+      }
+
+      // Pass 3: sprites.
+      for (const p of particles) {
         const s = sprites[p.strand];
-        const size = p.size * 10 * depth;
-        ctx!.globalAlpha = alpha * depth * (p.strand === 2 ? 0.4 : 1.0);
-        ctx!.drawImage(s, x - size / 2, y - size / 2, size, size);
+        const size = p.size * 10 * p.depth;
+        ctx!.globalAlpha = alpha * p.depth * (p.strand === 2 ? 0.4 : 1.0);
+        ctx!.drawImage(s, p.x - size / 2, p.y - size / 2, size, size);
       }
       ctx!.globalAlpha = 1;
       ctx!.globalCompositeOperation = "source-over";
