@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { sortedPosts } from "@/lib/posts";
 import { PostArt } from "@/components/blog/PostArt";
+import { FieldNotesBg } from "@/components/blog/FieldNotesBg";
 
 export const metadata: Metadata = {
   title: "Field Notes",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default function BlogIndex() {
   return (
     <main className="blog-index">
-      <div className="blog-index-bg" aria-hidden="true" />
+      <FieldNotesBg />
       <h1>Field Notes</h1>
       <p className="sub">
         Write-ups from real engineering work — bugs found in the wild, fixes
