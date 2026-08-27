@@ -6,6 +6,16 @@
    whenever a blog route is mounted. */
 body:has(.blog-root) {
   overflow: auto;
+  /* A document that cannot pan sideways: clip forbids horizontal scroll
+     without creating a scroll container, and overscroll-behavior stops
+     the rubber-band sway on touch. Interactive elements keep their own
+     horizontal gestures (see touch-action on the slider). */
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+html:has(.blog-root) {
+  overflow-x: clip;
+  overscroll-behavior-x: none;
 }
 
 .blog-root {
@@ -919,6 +929,8 @@ a.ns-chip:hover { filter: brightness(1.25); }
   width: 100%;
   margin: 14px 0 10px;
   accent-color: var(--accent);
+  /* horizontal drags belong to the slider, vertical swipes to the page */
+  touch-action: pan-y;
 }
 .linker-lab .gl-head {
   font-family: var(--font-mono), ui-monospace, monospace;
