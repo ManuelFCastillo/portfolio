@@ -845,7 +845,8 @@ body:has(.post-card:hover) .blog-index-bg {
 .note-stats {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 11.5px;
   color: var(--fg-dim);
@@ -875,6 +876,7 @@ a.ns-chip:hover { filter: brightness(1.25); }
 .note-stats-post {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   margin: 10px 0 4px;
   gap: 10px;
 }
