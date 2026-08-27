@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 
 /**
  * "The Anatomy of a Race Condition" — interactive essay.
@@ -27,6 +28,15 @@ export function RaceLab() {
           <div className="eyebrow">field notes &middot; sugarlabs/musicblocks &middot; issue #8069</div>
           <h1>The Anatomy of a Race Condition</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
+          <div className="hero-art">
+            <Image
+              src="/blog/race-condition.png"
+              alt="Two chains of blocks, one blue and one green, converging on a single shared slot from opposite sides"
+              width={1672}
+              height={939}
+              priority
+            />
+          </div>
           <p className="lede">
             While contributing to Music Blocks &mdash; Sugar Labs&rsquo; music-education app &mdash; I traced
             a console error to a positioning patch that silently failed on slow loads. Inside that one small

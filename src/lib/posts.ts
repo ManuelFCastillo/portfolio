@@ -17,6 +17,14 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "anatomy-of-an-undefined-symbol",
+    title: "The Anatomy of an Undefined Symbol",
+    date: "2026-08-27",
+    dek: "A security sensor that works everywhere modern silently refuses to start on half of enterprise Linux. I traced it from a red dashboard to a missing linker flag, proved the mechanism with one environment variable, and submitted the two-line fix upstream. Includes a linker you can step through yourself.",
+    minutes: 15,
+    kind: "interactive",
+  },
+  {
     slug: "anatomy-of-a-race-condition",
     title: "The Anatomy of a Race Condition",
     date: "2026-08-17",

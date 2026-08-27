@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { sortedPosts } from "@/lib/posts";
+import { PostArt } from "@/components/blog/PostArt";
 
 export const metadata: Metadata = {
   title: "Field Notes",
@@ -19,12 +20,15 @@ export default function BlogIndex() {
 
       {sortedPosts.map((post) => (
         <Link key={post.slug} href={`/blog/${post.slug}`} className="post-card">
-          <div className="meta">
-            <span className="k">PASS</span> · {post.date} · {post.kind} · ~
-            {post.minutes} min
+          <div className="post-card-body">
+            <div className="meta">
+              <span className="k">PASS</span> · {post.date} · {post.kind} · ~
+              {post.minutes} min
+            </div>
+            <h2>{post.title}</h2>
+            <p>{post.dek}</p>
           </div>
-          <h2>{post.title}</h2>
-          <p>{post.dek}</p>
+          <PostArt slug={post.slug} />
         </Link>
       ))}
     </main>
