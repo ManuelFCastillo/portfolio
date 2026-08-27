@@ -174,8 +174,8 @@ export const profile: Profile = {
 export const RESUME_PDF = "/manny-castillo-resume.pdf";
 
 export const contact: Contact = {
-  linkedin: "linkedin.com/in/manuelfcastillo",
-  linkedinUrl: "https://linkedin.com/in/manuelfcastillo",
+  linkedin: "linkedin.com/in/mfcastillo",
+  linkedinUrl: "https://www.linkedin.com/in/mfcastillo",
 };
 
 /* ------------------------------------------------------------------ */
