@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { NoteStats } from "@/components/blog/NoteStats";
 
 /**
  * "The Anatomy of an Undefined Symbol" — interactive essay.
@@ -28,6 +29,7 @@ export function LinkerLab() {
           <div className="eyebrow"><a href="/blog">field notes</a> &middot; falcosecurity/plugins &middot; issue #1500</div>
           <h1>The Anatomy of an Undefined Symbol</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
+          <NoteStats slug="anatomy-of-an-undefined-symbol" variant="post" />
           <div className="hero-art">
             <Image
               src="/blog/undefined-symbol.png"

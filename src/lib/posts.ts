@@ -13,6 +13,8 @@ export interface Post {
   minutes: number;
   /** Distinguishes interactive labs from plain write-ups in the meta line. */
   kind: "interactive" | "write-up";
+  /** Upstream repo the write-up is about, shown on the index card. */
+  repo: string;
 }
 
 export const posts: Post[] = [
@@ -23,6 +25,7 @@ export const posts: Post[] = [
     dek: "A security sensor that works everywhere modern silently refuses to start on half of enterprise Linux. I traced it from a red dashboard to a missing linker flag, proved the mechanism with one environment variable, and submitted the two-line fix upstream. Includes a linker you can step through yourself.",
     minutes: 15,
     kind: "interactive",
+    repo: "falcosecurity/plugins",
   },
   {
     slug: "anatomy-of-a-race-condition",
@@ -31,6 +34,7 @@ export const posts: Post[] = [
     dek: "I traced a console error in Music Blocks to a positioning patch that silently lost a race against slow page loads. Inside that one small fix live seven JavaScript mechanisms every working engineer leans on daily — each one taught here with code you can poke, ending in a playable simulation of the race itself.",
     minutes: 25,
     kind: "interactive",
+    repo: "sugarlabs/musicblocks",
   },
 ];
 

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Cloudflare Worker: separate runtime and type-world, checked by wrangler.
+    "workers/**",
   ]),
 ]);
 

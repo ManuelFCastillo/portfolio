@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { NoteStats } from "@/components/blog/NoteStats";
 
 /**
  * "The Anatomy of a Race Condition" — interactive essay.
@@ -28,6 +29,7 @@ export function RaceLab() {
           <div className="eyebrow"><a href="/blog">field notes</a> &middot; sugarlabs/musicblocks &middot; issue #8069</div>
           <h1>The Anatomy of a Race Condition</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
+          <NoteStats slug="anatomy-of-a-race-condition" variant="post" />
           <div className="hero-art">
             <Image
               src="/blog/race-condition.png"

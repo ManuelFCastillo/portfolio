@@ -3,6 +3,7 @@ import Link from "next/link";
 import { sortedPosts } from "@/lib/posts";
 import { PostArt } from "@/components/blog/PostArt";
 import { FieldNotesBg } from "@/components/blog/FieldNotesBg";
+import { NoteStats } from "@/components/blog/NoteStats";
 
 export const metadata: Metadata = {
   title: "Field Notes",
@@ -25,10 +26,11 @@ export default function BlogIndex() {
           <div className="post-card-body">
             <div className="meta">
               <span className="k">PASS</span> · {post.date} · {post.kind} · ~
-              {post.minutes} min
+              {post.minutes} min · <span className="repo">{post.repo}</span>
             </div>
             <h2>{post.title}</h2>
             <p>{post.dek}</p>
+            <NoteStats slug={post.slug} variant="card" />
           </div>
           <PostArt slug={post.slug} />
         </Link>
