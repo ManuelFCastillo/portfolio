@@ -388,7 +388,7 @@ function initLab(root: HTMLElement) {
   const verdictEl = $("lk-verdict");
   const modeBtn = $("lk-mode");
 
-  let order: string[] = ["objs", "resolv", "worker"];
+  const order: string[] = ["objs", "resolv", "worker"];
   let pos = 0;
   let needs: string[] = [];
   let dtNeeded: string[] = [];
