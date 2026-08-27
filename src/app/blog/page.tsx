@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 export default function BlogIndex() {
   return (
     <main className="blog-index">
+      <div className="blog-index-bg" aria-hidden="true" />
       <h1>Field Notes</h1>
       <p className="sub">
         Write-ups from real engineering work — bugs found in the wild, fixes

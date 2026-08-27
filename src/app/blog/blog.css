@@ -785,3 +785,59 @@ body:has(.blog-root) {
 .race-lab .eyebrow a:hover { text-decoration: underline; }
 a.blog-topbar-label { text-decoration: none; }
 a.blog-topbar-label:hover { color: var(--accent); }
+
+/* ---- ambient particle background on the index ---- */
+/* A fixed layer behind the cards. Anchored top-right so the wave stays
+   clear of the text column; feathered with a mask so it dissolves into
+   the page instead of ending at an edge. Hovering any card makes the
+   whole field drift and brighten on a slow ease -- scoped with :has()
+   so no JS is involved. */
+.blog-index {
+  position: relative;
+}
+.blog-index > *:not(.blog-index-bg) {
+  position: relative;
+  z-index: 1;
+}
+.blog-index-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: url("/blog/bg-particles.jpg") no-repeat top -6vh right -14vw;
+  background-size: min(72vw, 1100px) auto;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(
+    120% 120% at 82% 20%,
+    black 30%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    120% 120% at 82% 20%,
+    black 30%,
+    transparent 72%
+  );
+  transform: translate(0, 0) scale(1);
+  transition:
+    transform 2.2s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 2.2s ease;
+  will-change: transform, opacity;
+}
+body:has(.post-card:hover) .blog-index-bg {
+  opacity: 0.75;
+  transform: translate(-1.4vw, 1vh) scale(1.045);
+}
+@media (prefers-reduced-motion: reduce) {
+  .blog-index-bg,
+  body:has(.post-card:hover) .blog-index-bg {
+    transition: none;
+    transform: none;
+  }
+}
+@media (max-width: 700px) {
+  .blog-index-bg {
+    background-size: 140vw auto;
+    background-position: top -4vh right -40vw;
+    opacity: 0.35;
+  }
+}
