@@ -879,7 +879,7 @@ body:has(.post-card:hover) .blog-index-bg {
   text-decoration: none;
   white-space: nowrap;
 }
-.ns-chip.ns-merged { color: var(--ok); border-color: var(--ok); }
+.ns-chip.ns-merged { color: var(--pass); border-color: var(--pass); }
 .ns-chip.ns-open { color: #f0a848; border-color: #a97b3a; }
 .ns-chip.ns-closed { color: var(--fg-faint); }
 a.ns-chip:hover { filter: brightness(1.25); }
