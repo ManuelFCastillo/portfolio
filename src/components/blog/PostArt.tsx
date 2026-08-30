@@ -15,6 +15,10 @@ interface Art {
 }
 
 const ART: Record<string, Art> = {
+  "anatomy-of-an-undeclared-caption-track": {
+    src: "/blog/undeclared-caption.png",
+    alt: "A chain of blue video frame blocks feeding a gate with one lit slot, while a green path bypasses the gate entirely and arrives at the output beside it",
+  },
   "anatomy-of-a-race-condition": {
     src: "/blog/race-condition.png",
     alt: "Two chains of blocks, one blue and one green, converging on a single shared slot from opposite sides",

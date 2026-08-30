@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(process.cwd()),
   },
+  // Dev only: allow previewing over the LAN address as well as localhost.
+  // Without this Next blocks its own dev chunks cross-origin, the client
+  // bundle never loads, and every interactive post silently stops hydrating.
+  allowedDevOrigins: ["192.168.1.110"],
 };
 
 export default nextConfig;

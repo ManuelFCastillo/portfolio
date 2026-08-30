@@ -990,3 +990,137 @@ a.ns-chip:hover { filter: brightness(1.25); }
   font-size: 12.5px;
   padding: 12px 2px 2px;
 }
+
+/* ---- caption post: 608 wire decoder, declaration matrix ---- */
+.caption-lab .cc-wire {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 14px 14px 10px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+.caption-lab .cc-pair {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 7px;
+  font-size: 12px;
+  background: var(--panel);
+  opacity: 0.55;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+.caption-lab .cc-pair.cc-done { opacity: 1; }
+.caption-lab .cc-pair.cc-drop { opacity: 0.3; text-decoration: line-through; }
+.caption-lab .cc-pair.cc-cur { border-color: var(--accent); opacity: 1; }
+.caption-lab .cc-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 14px 12px;
+}
+@media (max-width: 560px) {
+  .caption-lab .cc-panels { grid-template-columns: 1fr; }
+}
+.caption-lab .cc-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: border-color 0.15s;
+}
+.caption-lab .cc-panel.cc-active { border-color: var(--accent); }
+.caption-lab .cc-screen {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13.5px;
+  min-height: 22px;
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+}
+.caption-lab .cc-screen .cc-on { color: var(--ok); }
+.caption-lab .cc-screen .cc-pending { color: var(--muted); }
+.caption-lab .cc-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+}
+@media (max-width: 560px) {
+  .caption-lab .cc-matrix { grid-template-columns: 1fr; }
+}
+.caption-lab .cc-col {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.caption-lab .cc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.caption-lab .cc-toggle input { accent-color: var(--accent); }
+.caption-lab .cc-note {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.caption-lab .cc-col .lk-controls { padding: 8px 0 0; }
+.caption-lab .cc-menu-head { padding: 0 14px; }
+.caption-lab .cc-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 14px 4px;
+  min-height: 34px;
+}
+.caption-lab .cc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  background: var(--panel);
+}
+.caption-lab .cc-chip i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.caption-lab .cc-chip small {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.caption-lab .cc-chip-bad { border-color: var(--bad); }
+.caption-lab .cc-chip-bad i { background: var(--bad); }
+.caption-lab .cc-chip-bad small { color: var(--bad); }
+.caption-lab .cc-verdict {
+  margin: 6px 14px 14px;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13px;
+  border: 1px solid var(--line);
+}
+.caption-lab .cc-verdict.cc-good { background: var(--ok-soft); color: var(--ok); }
+.caption-lab .cc-verdict.cc-bad { background: var(--old-soft); color: var(--old); }
+
+/* shared lab furniture, defined for the linker post and reused here */
+.caption-lab .lk-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 14px 12px;
+}
+.caption-lab .lk-h {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin-bottom: 8px;
+}
+.caption-lab .lk-empty { color: var(--fg-faint); font-size: 12.5px; }

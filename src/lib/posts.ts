@@ -19,6 +19,15 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "anatomy-of-an-undeclared-caption-track",
+    title: "The Anatomy of an Undeclared Caption Track",
+    date: "2026-08-30",
+    dek: "A stream declares one caption track and the player offers two. The extra one is real, decodable, and nowhere in the manifest. I traced it into the bytes riding inside H.264 frames, found a four year old issue where the declaration was read for the label but never for the decision, and shipped the fix upstream. The repro stream no longer existed, so I wrote a CEA-608 encoder to build one. Includes a wire decoder you can step through.",
+    minutes: 15,
+    kind: "interactive",
+    repo: "video-dev/hls.js",
+  },
+  {
     slug: "anatomy-of-an-undefined-symbol",
     title: "The Anatomy of an Undefined Symbol",
     date: "2026-08-27",
