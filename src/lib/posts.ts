@@ -15,6 +15,12 @@ export interface Post {
   kind: "interactive" | "write-up";
   /** Upstream repo the write-up is about, shown on the index card. */
   repo: string;
+  /**
+   * The verification claim for this post, shown beside the live diff size.
+   * Diff numbers come from the GitHub API; this is the part that has to be
+   * stated by hand, so keep it to facts that were actually run.
+   */
+  evidence?: string;
 }
 
 export const posts: Post[] = [
@@ -26,6 +32,7 @@ export const posts: Post[] = [
     minutes: 15,
     kind: "interactive",
     repo: "video-dev/hls.js",
+    evidence: "5 new tests, 1189 passing",
   },
   {
     slug: "anatomy-of-an-undefined-symbol",
@@ -35,6 +42,7 @@ export const posts: Post[] = [
     minutes: 15,
     kind: "interactive",
     repo: "falcosecurity/plugins",
+    evidence: "no code changed, only linkage, verified on Debian 11, Ubuntu 24.04 and aarch64",
   },
   {
     slug: "anatomy-of-a-race-condition",
@@ -44,6 +52,7 @@ export const posts: Post[] = [
     minutes: 25,
     kind: "interactive",
     repo: "sugarlabs/musicblocks",
+    evidence: "reproduced in Chrome DevTools on throttled 3G, gone after the fix",
   },
 ];
 

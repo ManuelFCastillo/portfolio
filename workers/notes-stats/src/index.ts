@@ -30,6 +30,13 @@ const UPSTREAM_TTL = 6 * 60 * 60 * 1000;
 export interface Upstream {
   state: "open" | "merged" | "closed" | "unknown";
   url: string;
+  /** repo and number, so the post can name the PR rather than just its state */
+  repo?: string;
+  number?: number;
+  /** diff size, straight from the same API response as the state */
+  additions?: number;
+  deletions?: number;
+  files?: number;
 }
 
 export interface Stats {
@@ -91,9 +98,23 @@ export class NoteStats extends DurableObject<Env> {
    */
   private async upstream(cfg: { repo: string; pr: number }): Promise<Upstream> {
     const url = `https://github.com/${cfg.repo}/pull/${cfg.pr}`;
-    const cached = await this.ctx.storage.get<{ ts: number; state: Upstream["state"] }>("upstream");
+    const ids = { url, repo: cfg.repo, number: cfg.pr };
+    type Cached = {
+      ts: number;
+      state: Upstream["state"];
+      additions?: number;
+      deletions?: number;
+      files?: number;
+    };
+    const cached = await this.ctx.storage.get<Cached>("upstream");
     if (cached && Date.now() - cached.ts < UPSTREAM_TTL) {
-      return { state: cached.state, url };
+      return {
+        ...ids,
+        state: cached.state,
+        additions: cached.additions,
+        deletions: cached.deletions,
+        files: cached.files,
+      };
     }
     try {
       const resp = await fetch(
@@ -101,16 +122,41 @@ export class NoteStats extends DurableObject<Env> {
         { headers: { "user-agent": "field-notes-stats", accept: "application/vnd.github+json" } },
       );
       if (!resp.ok) throw new Error(String(resp.status));
-      const pr = (await resp.json()) as { state: string; merged_at: string | null };
+      const pr = (await resp.json()) as {
+        state: string;
+        merged_at: string | null;
+        additions?: number;
+        deletions?: number;
+        changed_files?: number;
+      };
       const state: Upstream["state"] = pr.merged_at
         ? "merged"
         : pr.state === "open"
           ? "open"
           : "closed";
-      await this.ctx.storage.put("upstream", { ts: Date.now(), state });
-      return { state, url };
+      const entry: Cached = {
+        ts: Date.now(),
+        state,
+        additions: pr.additions,
+        deletions: pr.deletions,
+        files: pr.changed_files,
+      };
+      await this.ctx.storage.put("upstream", entry);
+      return {
+        ...ids,
+        state,
+        additions: entry.additions,
+        deletions: entry.deletions,
+        files: entry.files,
+      };
     } catch {
-      return { state: cached?.state ?? "unknown", url };
+      return {
+        ...ids,
+        state: cached?.state ?? "unknown",
+        additions: cached?.additions,
+        deletions: cached?.deletions,
+        files: cached?.files,
+      };
     }
   }
 

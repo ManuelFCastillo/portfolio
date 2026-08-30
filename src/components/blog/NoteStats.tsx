@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { posts } from "@/lib/posts";
 
 /**
  * Views / upvotes / hearts / upstream-PR status for a Field Notes post,
@@ -19,6 +20,11 @@ const API = "https://notes-stats.bitdrop.workers.dev";
 interface Upstream {
   state: "open" | "merged" | "closed" | "unknown";
   url: string;
+  repo?: string;
+  number?: number;
+  additions?: number;
+  deletions?: number;
+  files?: number;
 }
 interface Stats {
   views: number;
@@ -140,6 +146,14 @@ export function NoteStats({
     );
   }
 
+  const evidence = posts.find((p) => p.slug === slug)?.evidence;
+  const up = stats?.upstream;
+  const diff =
+    up && up.additions !== undefined && up.deletions !== undefined
+      ? `+${up.additions} \u2212${up.deletions}` +
+        (up.files ? ` across ${up.files} file${up.files > 1 ? "s" : ""}` : "")
+      : null;
+
   return (
     <div className="note-stats note-stats-post">
       {stats ? (
@@ -172,12 +186,21 @@ export function NoteStats({
               target="_blank"
               rel="noreferrer"
             >
-              upstream: {chip.label}
+              {stats.upstream.repo && stats.upstream.number
+                ? `${stats.upstream.repo}#${stats.upstream.number}`
+                : "upstream"}{" "}
+              &middot; {chip.label}
             </a>
           )}
         </>
       ) : (
         <span className="ns-n">&nbsp;</span>
+      )}
+      {(diff || evidence) && (
+        <div className="ns-evidence">
+          {diff && <span>{diff}</span>}
+          {evidence && <span>{evidence}</span>}
+        </div>
       )}
     </div>
   );
