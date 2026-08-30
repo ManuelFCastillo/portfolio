@@ -106,7 +106,7 @@ export class NoteStats extends DurableObject<Env> {
       deletions?: number;
       files?: number;
     };
-    const cached = await this.ctx.storage.get<Cached>("upstream");
+    const cached = await this.ctx.storage.get<Cached>("upstream:v2");
     if (cached && Date.now() - cached.ts < UPSTREAM_TTL) {
       return {
         ...ids,
@@ -141,7 +141,7 @@ export class NoteStats extends DurableObject<Env> {
         deletions: pr.deletions,
         files: pr.changed_files,
       };
-      await this.ctx.storage.put("upstream", entry);
+      await this.ctx.storage.put("upstream:v2", entry);
       return {
         ...ids,
         state,
