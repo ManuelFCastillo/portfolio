@@ -25,6 +25,16 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "anatomy-of-an-intermittent-500",
+    title: "The Anatomy of an Intermittent 500",
+    date: "2026-08-30",
+    dek: "CrowdStrike's Python SDK was returning a 500 that never came from the API. The message was a Python exception, the status code was manufactured, and the response header support needed to research the failure had been thrown away. I traced it to one line in the error handler that calls .get() on raw bytes, found the adjacent open PR fixed two of the four trigger conditions but not the cause, and shipped the guard upstream. Includes a response path tracer you can step through.",
+    minutes: 12,
+    kind: "interactive",
+    repo: "CrowdStrike/falconpy",
+    evidence: "14 tests, no credentials required, 100% of added lines covered",
+  },
+  {
     slug: "anatomy-of-an-undeclared-caption-track",
     title: "The Anatomy of an Undeclared Caption Track",
     date: "2026-08-30",

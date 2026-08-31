@@ -15,6 +15,10 @@ interface Art {
 }
 
 const ART: Record<string, Art> = {
+  "anatomy-of-an-intermittent-500": {
+    src: "/blog/intermittent-500.png",
+    alt: "Cutaway engineering plate of a brass manifold. Two inlet pipes carry ordered teal blocks, a third carries unformed oxblood material, and all three merge into one outlet stamped 500",
+  },
   "anatomy-of-an-undeclared-caption-track": {
     src: "/blog/undeclared-caption.png",
     alt: "A chain of blue video frame blocks feeding a gate with one lit slot, while a green path bypasses the gate entirely and arrives at the output beside it",
