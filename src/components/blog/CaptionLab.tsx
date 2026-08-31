@@ -215,17 +215,28 @@ trackProperties.media = captionsTrack;                 // the declaration itself
         <h2 id="s5"><span className="num">5.</span> Making the declaration load bearing</h2>
         <div className="time">~4 min &middot; try the matrix</div>
         <p>
-          The fix is a flag, a predicate, and two guards. The flag records whether the playlist
-          declared <i>anything</i>, because that distinguishes two cases that must behave
+          The fix is a predicate, a derived flag, and two guards. The flag records whether the
+          playlist declared <i>anything</i>, because that distinguishes two cases that must behave
           differently: a playlist that declared CC1 and not CC2, versus a playlist that declared no
           captions at all and cannot be used to filter anything.
         </p>
-        <div className="log">{`private isCaptionsTrackDeclared(trackName: string): boolean {
-  if (!this.config.filterUndeclaredClosedCaptions || !this.captionsDeclared) {
-    return true;    // opted out, or nothing to filter against
+        <div className="log">{`private filterCaptionsTrack(trackName: string): boolean {
+  if (this.config.filterUndeclaredClosedCaptions) {
+    return !this.captionsProperties[trackName]?.media && this.captionsDeclared;
   }
-  return !!this.captionsProperties[trackName]?.media;
+  return false;    // opted out, nothing to filter against
+}
+
+private get captionsDeclared(): boolean {
+  return Object.keys(this.captionsProperties).some(
+    (trackName) => !!this.captionsProperties[trackName].media,
+  );
 }`}</div>
+        <p>
+          That flag is a getter rather than a stored field, and it did not start out that way.
+          Section 9 covers why the maintainer asked for the change, because the reason generalises
+          well past this file.
+        </p>
         <p>
           The obvious guard goes at the top of <code>createCaptionsTrack</code>. The second one is
           the interesting one, and it is not optional. <code>addCues</code> runs for every cue, and
@@ -409,7 +420,68 @@ const RCL = 0x20, ENM = 0x2e, EOC = 0x2f;`}</div>
           made.
         </p>
 
-        <h2 id="s9"><span className="num">9.</span> Check yourself</h2>
+        <h2 id="s9"><span className="num">9.</span> What the review changed</h2>
+        <div className="time">~2 min &middot; read</div>
+        <p>
+          The first review came back <b>changes requested</b>, opening with &ldquo;Makes sense.
+          Mostly nit-pick change requests.&rdquo; Five comments, every one with the exact diff
+          attached. Nothing disputed what the patch did. All five were about its shape.
+        </p>
+        <p>
+          Four were genuine nits: rename a method, update its two call sites, avoid a{" "}
+          <code>for...in</code> loop, extract a repeated object literal into a helper. Worth doing,
+          not worth writing about.
+        </p>
+        <p>
+          The fifth one was not a nit, and it is the reason this section exists. I had written the
+          declaration flag as a field:
+        </p>
+        <div className="log">{`private captionsDeclared: boolean = false;`}</div>
+        <p>
+          Set it to <code>true</code> when a rendition is parsed, back to <code>false</code> on
+          playlist reset. Two assignment sites, one boolean, perfectly readable. His note:{" "}
+          <i>&ldquo;Please remove this flag.&rdquo;</i>
+        </p>
+        <p>
+          The argument is that the fact was already in the object. A track having{" "}
+          <code>.media</code> set <b>is</b> the declaration, so a separate boolean recording
+          &ldquo;something was declared&rdquo; is a second copy of information the class already
+          held. And two copies of one fact can disagree.
+        </p>
+        <p>
+          They disagree quietly, too. Any future code path that populates{" "}
+          <code>captionsProperties</code> without remembering to set the flag, or clears one without
+          the other, breaks the filter in the direction where nothing throws: captions stop being
+          filtered and the phantom track comes back. No error, no test failure unless someone wrote
+          exactly the right test, just the original bug wearing a different hat.
+        </p>
+        <p>
+          A getter cannot drift, because there is only one place the answer can come from. That is
+          the whole idea, and it cost four lines.
+        </p>
+        <p>
+          The part I did not expect was the compiler doing the demolition. Delete the field, add the
+          getter, and TypeScript immediately flags both assignment sites: <code>Cannot assign to
+          &lsquo;captionsDeclared&rsquo; because it is a read-only property</code>. It pointed
+          straight at every line that had been maintaining the duplicate, which were exactly the
+          lines that could have drifted. Then the reset collapsed too, because replacing{" "}
+          <code>captionsProperties</code> with a fresh default object clears the declarations and
+          the derived flag in one assignment.
+        </p>
+        <p>
+          Net effect of the review round: 16 fewer lines, one less thing that can be wrong, and no
+          behaviour change at all. The rename inverted a boolean and rearranged a condition, so I
+          checked all four input combinations by hand before agreeing to it; both forms reduce to
+          the same expression, and all 1189 unit tests passed unchanged afterwards.
+        </p>
+        <p>
+          Two of the five edits could have compiled clean while behaving wrong: dropping the{" "}
+          <code>!</code> from a call site would have inverted the filter, and deleting the flag reset
+          without putting the new one in place would have leaked declarations across playlists. Both
+          typecheck perfectly. Neither is the kind of thing a compiler has an opinion about.
+        </p>
+
+        <h2 id="s10"><span className="num">10.</span> Check yourself</h2>
         <div className="time">~1 min &middot; answer before revealing</div>
         <details>
           <summary>1 &middot; A stream carries CEA&#8209;608 on CC1 and CC2 and its playlist declares neither. How many caption tracks should a conforming player present?</summary>
