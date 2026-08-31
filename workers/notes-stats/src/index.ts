@@ -29,7 +29,7 @@ const UPSTREAM: Record<string, { repo: string; pr: number }> = {
 const UPSTREAM_TTL = 6 * 60 * 60 * 1000;
 
 export interface Upstream {
-  state: "open" | "merged" | "closed" | "unknown";
+  state: "open" | "approved" | "changes_requested" | "merged" | "closed" | "unknown";
   url: string;
   /** repo and number, so the post can name the PR rather than just its state */
   repo?: string;
@@ -107,7 +107,7 @@ export class NoteStats extends DurableObject<Env> {
       deletions?: number;
       files?: number;
     };
-    const cached = await this.ctx.storage.get<Cached>("upstream:v2");
+    const cached = await this.ctx.storage.get<Cached>("upstream:v5");
     if (cached && Date.now() - cached.ts < UPSTREAM_TTL) {
       return {
         ...ids,
@@ -130,10 +130,18 @@ export class NoteStats extends DurableObject<Env> {
         deletions?: number;
         changed_files?: number;
       };
+      // requested_reviewers is not a usable signal here: GitHub clears a
+      // reviewer from it once they submit, and CODEOWNERS populates it
+      // automatically on open. So an engaged PR can be empty and an
+      // untouched one can be full. Ask the reviews endpoint instead.
+      let verdict: "approved" | "changes_requested" | null = null;
+      if (pr.state === "open" && !pr.merged_at) {
+        verdict = await this.reviewVerdict(cfg);
+      }
       const state: Upstream["state"] = pr.merged_at
         ? "merged"
         : pr.state === "open"
-          ? "open"
+          ? (verdict ?? "open")
           : "closed";
       const entry: Cached = {
         ts: Date.now(),
@@ -142,7 +150,7 @@ export class NoteStats extends DurableObject<Env> {
         deletions: pr.deletions,
         files: pr.changed_files,
       };
-      await this.ctx.storage.put("upstream:v2", entry);
+      await this.ctx.storage.put("upstream:v5", entry);
       return {
         ...ids,
         state,
@@ -158,6 +166,38 @@ export class NoteStats extends DurableObject<Env> {
         deletions: cached?.deletions,
         files: cached?.files,
       };
+    }
+  }
+
+  /**
+   * Latest review verdict on an open PR. COMMENTED reviews are skipped:
+   * they do not change a PR's decision, and an author replying in threads
+   * files one every time. Returns null when nobody has ruled yet.
+   */
+  private async reviewVerdict(cfg: {
+    repo: string;
+    pr: number;
+  }): Promise<"approved" | "changes_requested" | null> {
+    try {
+      const resp = await fetch(
+        `https://api.github.com/repos/${cfg.repo}/pulls/${cfg.pr}/reviews?per_page=100`,
+        {
+          headers: {
+            "user-agent": "field-notes-stats",
+            accept: "application/vnd.github+json",
+          },
+        },
+      );
+      if (!resp.ok) return null;
+      const reviews = (await resp.json()) as Array<{ state?: string }>;
+      let latest: "approved" | "changes_requested" | null = null;
+      for (const r of reviews) {
+        if (r.state === "APPROVED") latest = "approved";
+        else if (r.state === "CHANGES_REQUESTED") latest = "changes_requested";
+      }
+      return latest;
+    } catch {
+      return null;
     }
   }
 

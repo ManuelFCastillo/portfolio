@@ -1348,3 +1348,10 @@ a.ns-chip:hover { filter: brightness(1.25); }
   .falcon-lab .fp-controls { grid-template-columns: 1fr; }
   .falcon-lab .fp-outs { grid-template-columns: 1fr; }
 }
+
+/* Review verdicts on an open PR. Approved shares the pass green with
+   ns-merged since both mean a maintainer signed off; changes requested
+   takes the accent rather than a fail red, because it is a normal step in
+   a review and not a failure. */
+.ns-chip.ns-approved { color: var(--pass); border-color: var(--pass); }
+.ns-chip.ns-changes { color: var(--accent); border-color: var(--accent); }
