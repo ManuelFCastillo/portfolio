@@ -31,6 +31,7 @@ export function LinkerLab() {
           <h1>The Anatomy of an Undefined Symbol</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
           <NoteStats slug="anatomy-of-an-undefined-symbol" variant="post" />
+          <ShareLinks slug="anatomy-of-an-undefined-symbol" placement="top" />
           <div className="hero-art">
             <Image
               src="/blog/undefined-symbol.png"

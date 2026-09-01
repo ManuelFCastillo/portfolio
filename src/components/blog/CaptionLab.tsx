@@ -31,6 +31,7 @@ export function CaptionLab() {
           <h1>The Anatomy of an Undeclared Caption Track</h1>
           <div className="byline">Manny Castillo &middot; Senior SDET &middot; August 2026</div>
           <NoteStats slug="anatomy-of-an-undeclared-caption-track" variant="post" />
+          <ShareLinks slug="anatomy-of-an-undeclared-caption-track" placement="top" />
           <div className="hero-art">
             <Image
               src="/blog/undeclared-caption.png"

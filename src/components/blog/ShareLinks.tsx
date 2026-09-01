@@ -38,7 +38,14 @@ const LINK =
   "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71|M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71";
 const CHECK = "M20 6 9 17l-5-5";
 
-export function ShareLinks({ slug }: { slug: string }) {
+export function ShareLinks({
+  slug,
+  placement = "end",
+}: {
+  slug: string;
+  /** "top" drops the rule and tightens the margins for the hero. */
+  placement?: "top" | "end";
+}) {
   const [copied, setCopied] = useState(false);
   const url = `${SITE}/blog/${slug}`;
 
@@ -53,7 +60,7 @@ export function ShareLinks({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="share-row">
+    <div className={`share-row${placement === "top" ? " share-top" : ""}`}>
       <span className="share-label">Share</span>
       <a
         className="ns-pill ns-btn"

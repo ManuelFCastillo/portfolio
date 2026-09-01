@@ -1376,3 +1376,11 @@ a.ns-chip:hover { filter: brightness(1.25); }
   margin-right: 2px;
 }
 .race-lab .share-row a.ns-pill { text-decoration: none; }
+
+/* Hero placement: no rule, no top spacing. The end-of-post row separates
+   itself from the article; this one sits inside the header block. */
+.race-lab .share-row.share-top {
+  margin: 14px 0 0;
+  padding-top: 0;
+  border-top: 0;
+}
