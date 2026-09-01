@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
+import { ShareLinks } from "@/components/blog/ShareLinks";
 
 /**
  * "The Anatomy of an Undeclared Caption Track" — interactive essay.
@@ -529,6 +530,7 @@ const RCL = 0x20, ENM = 0x2e, EOC = 0x2f;`}</div>
           the page itself is{" "}
           <a href="https://site-gamma-tan-81.vercel.app">running here</a>.
         </footer>
+        <ShareLinks slug="anatomy-of-an-undeclared-caption-track" />
       </div>
     </article>
   );

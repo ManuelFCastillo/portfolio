@@ -1355,3 +1355,24 @@ a.ns-chip:hover { filter: brightness(1.25); }
    a review and not a failure. */
 .ns-chip.ns-approved { color: var(--pass); border-color: var(--pass); }
 .ns-chip.ns-changes { color: var(--accent); border-color: var(--accent); }
+
+/* End-of-post share row. Reuses the stats pills so it reads as part of the
+   same control set rather than a bolted-on widget. */
+.race-lab .share-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 34px 0 6px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.race-lab .share-label {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-right: 2px;
+}
+.race-lab .share-row a.ns-pill { text-decoration: none; }

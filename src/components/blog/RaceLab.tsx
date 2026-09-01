@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
+import { ShareLinks } from "@/components/blog/ShareLinks";
 
 /**
  * "The Anatomy of a Race Condition" — interactive essay.
@@ -451,6 +452,7 @@ if (typeof window.fixSearchAutocompletePosition === "function") {
           &mdash; quiz question 5 weighs the two). Files touched:{" "}
           <code>js/utils/jquery-setup.js</code>, <code>js/activity/search-controller.js</code>.
         </footer>
+        <ShareLinks slug="anatomy-of-a-race-condition" />
       </div>
     </article>
   );
