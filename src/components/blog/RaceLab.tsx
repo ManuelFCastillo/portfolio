@@ -31,6 +31,7 @@ export function RaceLab() {
           <h1>The Anatomy of a Race Condition</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
           <NoteStats slug="anatomy-of-a-race-condition" variant="post" />
+          <ShareLinks slug="anatomy-of-a-race-condition" placement="top" />
           <div className="hero-art">
             <Image
               src="/blog/race-condition.png"

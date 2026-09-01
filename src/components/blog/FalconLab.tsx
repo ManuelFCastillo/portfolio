@@ -33,6 +33,7 @@ export function FalconLab() {
           <h1>The Anatomy of an Intermittent 500</h1>
           <div className="byline">Manny Castillo &middot; Senior SDET &middot; August 2026</div>
           <NoteStats slug="anatomy-of-an-intermittent-500" variant="post" />
+          <ShareLinks slug="anatomy-of-an-intermittent-500" placement="top" />
           <div className="hero-art">
             <Image
               src="/blog/intermittent-500.png"
