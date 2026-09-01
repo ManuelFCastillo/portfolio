@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
+import { ShareLinks } from "@/components/blog/ShareLinks";
 
 /**
  * "The Anatomy of an Undefined Symbol" — interactive essay.
@@ -409,6 +410,7 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
           the repo&rsquo;s{" "}
           <a href="https://github.com/ManuelFCastillo/kernel-matrix/blob/main/FINDINGS.md">FINDINGS.md</a>.
         </footer>
+        <ShareLinks slug="anatomy-of-an-undefined-symbol" />
       </div>
     </article>
   );

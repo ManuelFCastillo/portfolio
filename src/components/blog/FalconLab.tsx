@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
+import { ShareLinks } from "@/components/blog/ShareLinks";
 
 /**
  * "The Anatomy of an Intermittent 500" - interactive essay.
@@ -401,6 +402,7 @@ return {"errors": [{"code": status_code, "message": message}], "resources": []}`
           credentials would have bought nothing, because the workflow that needed them was
           never going to run. Ten lines of YAML said so.
         </p>
+        <ShareLinks slug="anatomy-of-an-intermittent-500" />
       </div>
     </article>
   );
