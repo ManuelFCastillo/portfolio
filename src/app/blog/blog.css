@@ -1482,3 +1482,15 @@ a.ns-chip:hover { filter: brightness(1.25); }
   color: var(--fail);
   font-style: italic;
 }
+
+/* The plate is 3:2 and its callouts sit hard against the left edge, so the
+   shared cover rule would crop every label away. Contain it instead, same
+   as the falcon-lab plate. */
+.guard-lab .hero-art {
+  max-height: none;
+  background: var(--panel-hi);
+}
+.guard-lab .hero-art img {
+  max-height: 520px;
+  object-fit: contain;
+}

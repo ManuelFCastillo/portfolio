@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
 import { ShareLinks } from "@/components/blog/ShareLinks";
 
@@ -32,6 +33,15 @@ export function GuardLab() {
           <div className="byline">Manny Castillo &middot; Senior SDET &middot; September 2026</div>
           <NoteStats slug="anatomy-of-a-guard-that-never-passed" variant="post" />
           <ShareLinks slug="anatomy-of-a-guard-that-never-passed" placement="top" />
+          <div className="hero-art">
+            <Image
+              src="/blog/guard-never-passed.png"
+              alt="Cutaway engineering plate of a brass gatehouse mechanism. A teal channel carrying token 712 passes through an open gate to the outlet; an oxblood channel carrying token 891 is stopped by a dropped detent. A comparator arm reads an open ledger listing 706 to 744, with 712 highlighted and 891 absent. A closed book beside the machine is lettered FORK'S OWN LEDGER, NEVER CONSULTED. Numbered callouts name the code paths."
+              width={1536}
+              height={1024}
+              priority
+            />
+          </div>
           <p className="lede">
             A security fix hardened a workflow against a real attack, and in doing so
             rejected every outside contributor for six months. Nobody noticed, because the
