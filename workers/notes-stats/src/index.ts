@@ -25,6 +25,7 @@ const UPSTREAM: Record<string, { repo: string; pr: number }> = {
   "anatomy-of-a-race-condition": { repo: "sugarlabs/musicblocks", pr: 8099 },
   "anatomy-of-an-undeclared-caption-track": { repo: "video-dev/hls.js", pr: 8020 },
   "anatomy-of-an-intermittent-500": { repo: "CrowdStrike/falconpy", pr: 1509 },
+  "anatomy-of-a-guard-that-never-passed": { repo: "falcosecurity/plugins", pr: 1509 },
 };
 const UPSTREAM_TTL = 6 * 60 * 60 * 1000;
 

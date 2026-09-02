@@ -25,6 +25,16 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "anatomy-of-a-guard-that-never-passed",
+    title: "The Anatomy of a Guard That Never Passed",
+    date: "2026-09-02",
+    dek: "A security fix hardened a GitHub Actions workflow against artifact poisoning, and in doing so rejected every outside contributor for six months. Nobody noticed, because the only people who could see it working were the people it was never checking. I traced it from a CI failure on my own PR, reported it, had my proposed fix refused for a better reason than I expected, and shipped the maintainer's version to two repositories. Includes a validation simulator you can run.",
+    minutes: 14,
+    kind: "interactive",
+    repo: "falcosecurity/plugins",
+    evidence: "confirmed by the maintainer, two PRs open, byte-identical to the libs fix",
+  },
+  {
     slug: "anatomy-of-an-intermittent-500",
     title: "The Anatomy of an Intermittent 500",
     date: "2026-08-30",
