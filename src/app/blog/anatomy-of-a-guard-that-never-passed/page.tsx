@@ -11,6 +11,14 @@ export const metadata: Metadata = {
     description:
       "It was correct for everyone who could run it and broken for everyone who could not. If you have to filter the answer, you asked the wrong question.",
     url: "https://www.mannycastillo.dev/blog/anatomy-of-a-guard-that-never-passed",
+    images: [
+      {
+        url: "https://www.mannycastillo.dev/blog/guard-never-passed.png",
+        width: 1536,
+        height: 1024,
+        alt: "Cutaway engineering plate of a brass gatehouse mechanism, one channel passing through an open gate and another stopped by a dropped detent, beside a closed book lettered FORK'S OWN LEDGER, NEVER CONSULTED",
+      },
+    ],
   },
 };
 
