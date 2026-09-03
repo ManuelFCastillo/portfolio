@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
 import { ShareLinks } from "@/components/blog/ShareLinks";
+import { UpdatedNote } from "@/components/blog/UpdatedNote";
 
 /**
  * "The Anatomy of an Undefined Symbol" — interactive essay.
@@ -31,6 +32,7 @@ export function LinkerLab() {
           <h1>The Anatomy of an Undefined Symbol</h1>
           <div className="byline">Manny Castillo &middot; Lead SDET &middot; August 2026</div>
           <NoteStats slug="anatomy-of-an-undefined-symbol" variant="post" />
+          <UpdatedNote slug="anatomy-of-an-undefined-symbol" />
           <ShareLinks slug="anatomy-of-an-undefined-symbol" placement="top" />
           <div className="hero-art">
             <Image
@@ -362,12 +364,88 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
           <br />
           &bull; <a href="https://github.com/falcosecurity/plugins/pull/1501">falcosecurity/plugins#1501</a>:
           the two-line CMake fix, DCO-signed, with a reviewer note about the link-order trap, because
-          a fix that can silently fail deserves a warning label. <i>(Status: open, pending maintainer
-          review.)</i>
+          a fix that can silently fail deserves a warning label. <i>(Merged 3 September 2026.)</i>
         </p>
         <p>Eleven lines of diff. About four hundred lines of evidence. That ratio is the job.</p>
 
-        <h2 id="s8"><span className="num">8.</span> Check yourself</h2>
+        <h2 id="s8"><span className="num">8.</span> The test that could not have existed</h2>
+        <div className="time">~2 min &middot; read</div>
+        <p>
+          The fix merged, and the maintainer added two notes that were more interesting than the
+          merge. The first explained why this bug reached a release at all:
+        </p>
+        <div className="note">
+          <span className="lbl">leogr, on the pull request</span>
+          <p>
+            &ldquo;None of our CI jobs load <code>libcontainer.so</code> on a glibc &lt; 2.34 host
+            (<code>build-linux</code> builds on bullseye but never dlopens the result, and
+            falco-tests runs inside <code>falcosecurity/falco:master-debian</code>, i.e. Debian 12
+            with glibc 2.36), so CI could not catch this.&rdquo;
+          </p>
+        </div>
+        <p>
+          Read that carefully, because it is a precise description of a blind spot rather than an
+          apology. Two jobs touch this library. One <b>builds</b> it on Debian 11, glibc 2.31, old
+          enough to have the bug, and never loads it. The other <b>loads</b> it, inside Debian 12,
+          glibc 2.36, new enough that the bug cannot appear. Each job holds one half of the
+          condition and neither holds both.
+        </p>
+        <p>
+          That is the same shape as the bug itself. Section 5 argued that glibc 2.34 papers over the
+          missing dependency wherever modern tooling runs, so the fault only surfaces where the fix
+          authors are not standing. Their CI was standing in exactly the same place.
+        </p>
+
+        <h3>Making it un-reintroducible</h3>
+        <p>
+          A merged fix removes the bug. It does not stop the next Go or CMake change from dropping{" "}
+          <code>-lresolv</code> again, silently, on a build machine where nothing will notice. So
+          the follow-up matters more than the fix:{" "}
+          <a href="https://github.com/falcosecurity/plugins/pull/1513">plugins#1513</a> adds two
+          checks to <code>build-linux</code>, the job that was already running on bullseye and
+          already had everything needed.
+        </p>
+        <pre className="log">{`readelf -d libcontainer.so | grep -q 'NEEDED.*libresolv\\.so\\.2'`}</pre>
+        <p>
+          That asserts the dependency is recorded. It is fast and its failure names the cause. But
+          it only ever catches this one symptom, so the second check does the thing CI was never
+          doing: compiles a small harness and <code>dlopen</code>s the built library with{" "}
+          <code>RTLD_NOW</code>, on glibc 2.31, in the job that just produced it.
+        </p>
+        <p>
+          <code>RTLD_NOW</code> rather than <code>RTLD_LAZY</code> is the whole point. Lazy binding
+          defers function symbol resolution until first call, so a library missing{" "}
+          <code>res_search</code> would load cleanly and fail later, somewhere less obvious. Binding
+          everything at load time is what turns a latent fault into a red build.
+        </p>
+        <p>
+          I proved it catches the original rather than assuming. Built a probe library calling{" "}
+          <code>res_search</code> two ways inside <code>debian:bullseye</code>:
+        </p>
+        <div className="log">{`glibc: ldd (Debian GLIBC 2.31-13+deb11u14) 2.31
+
+--- built with -lresolv ---
+  readelf guard: PASS
+  dlopen guard : PASS
+
+--- built without -lresolv ---
+  readelf guard: FAIL
+  dlopen guard : FAIL`}</div>
+        <p>
+          The second case is this entire post reproduced in four lines of shell. A shared object
+          links happily without <code>-lresolv</code>, because undefined symbols are permitted at
+          link time, and then refuses to load anywhere <code>res_search</code> still lives in
+          libresolv.
+        </p>
+        <p>
+          <b>The lesson is not about linkers.</b> When a bug survives a test suite, the useful
+          question is not &ldquo;why did nobody write this test&rdquo; but{" "}
+          <b>&ldquo;what would this test have had to run on?&rdquo;</b> The answer here was an
+          environment the project builds on constantly and never executes in. Finding a bug is
+          worth something. Removing the conditions that let it hide is worth more.
+        </p>
+
+        <h2 id="s9"><span className="num">9.</span> Check yourself</h2>
         <div className="time">~1 min &middot; answer before revealing</div>
         <details>
           <summary>1 &middot; A shared library links with an unresolved symbol and exit code 0. Bug or feature?</summary>

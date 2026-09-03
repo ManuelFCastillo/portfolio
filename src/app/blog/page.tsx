@@ -27,6 +27,12 @@ export default function BlogIndex() {
             <div className="meta">
               <span className="k">PASS</span> · {post.date} · {post.kind} · ~
               {post.minutes} min · <span className="repo">{post.repo}</span>
+              {post.updated && (
+                <>
+                  {" · "}
+                  <span className="meta-updated">updated {post.updated}</span>
+                </>
+              )}
             </div>
             <h2>{post.title}</h2>
             <p>{post.dek}</p>

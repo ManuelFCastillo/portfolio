@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
 import { ShareLinks } from "@/components/blog/ShareLinks";
+import { UpdatedNote } from "@/components/blog/UpdatedNote";
 
 /**
  * "The Anatomy of an Undeclared Caption Track" — interactive essay.
@@ -31,6 +32,7 @@ export function CaptionLab() {
           <h1>The Anatomy of an Undeclared Caption Track</h1>
           <div className="byline">Manny Castillo &middot; Senior SDET &middot; August 2026</div>
           <NoteStats slug="anatomy-of-an-undeclared-caption-track" variant="post" />
+          <UpdatedNote slug="anatomy-of-an-undeclared-caption-track" />
           <ShareLinks slug="anatomy-of-an-undeclared-caption-track" placement="top" />
           <div className="hero-art">
             <Image
