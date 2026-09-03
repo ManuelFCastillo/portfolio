@@ -21,6 +21,14 @@ export interface Post {
    * stated by hand, so keep it to facts that were actually run.
    */
   evidence?: string;
+  /**
+   * ISO date of a substantive revision, not a typo fix. Shown on the index
+   * card and above the article, so a returning reader can tell whether the
+   * post changed since they last read it.
+   */
+  updated?: string;
+  /** One line on what actually changed. Required to be worth showing. */
+  updateNote?: string;
 }
 
 export const posts: Post[] = [
@@ -53,6 +61,8 @@ export const posts: Post[] = [
     kind: "interactive",
     repo: "video-dev/hls.js",
     evidence: "5 new tests, 1189 passing",
+    updated: "2026-08-31",
+    updateNote: "Approved and revised after review. The maintainer asked for the declaration flag to be derived rather than stored, and the reasoning generalises. New section 9.",
   },
   {
     slug: "anatomy-of-an-undefined-symbol",
@@ -63,6 +73,8 @@ export const posts: Post[] = [
     kind: "interactive",
     repo: "falcosecurity/plugins",
     evidence: "no code changed, only linkage, verified on Debian 11, Ubuntu 24.04 and aarch64",
+    updated: "2026-09-03",
+    updateNote: "The fix merged. The maintainer then pointed out CI could never have caught the bug, which became a second contribution. New section 8.",
   },
   {
     slug: "anatomy-of-a-race-condition",

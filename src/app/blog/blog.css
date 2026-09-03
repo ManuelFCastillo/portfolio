@@ -1494,3 +1494,60 @@ a.ns-chip:hover { filter: brightness(1.25); }
   max-height: 520px;
   object-fit: contain;
 }
+
+/* Revision marker. Deliberately quiet: it should catch the eye of someone
+   who has read the post before without competing with the lede for someone
+   who has not. */
+.blog-index .meta-updated { color: var(--accent); }
+
+.race-lab .updated-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: baseline;
+  margin: 14px 0 0;
+  padding: 11px 14px;
+  background: var(--panel-hi);
+  border-left: 2px solid var(--accent);
+  border-radius: 3px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg-dim);
+}
+.race-lab .updated-badge {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+  flex: none;
+}
+.race-lab .updated-body time { color: var(--fg); }
+
+/* Quoted callout, used for maintainer comments and side notes. Shares the
+   left-accent treatment with .updated-note so the two read as the same
+   family of "this is someone else speaking, or a note about the post". */
+.race-lab .note {
+  margin: 18px 0;
+  padding: 14px 16px;
+  background: var(--panel-hi);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  border-radius: 3px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+}
+.race-lab .note .lbl {
+  display: block;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 7px;
+}
+.race-lab .note p { margin: 0; }
+.race-lab .note p + p { margin-top: 10px; }
