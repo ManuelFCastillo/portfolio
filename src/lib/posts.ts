@@ -41,6 +41,8 @@ export const posts: Post[] = [
     kind: "interactive",
     repo: "falcosecurity/plugins",
     evidence: "confirmed by the maintainer, two PRs open, byte-identical to the libs fix",
+    updated: "2026-09-04",
+    updateNote: "A second, unrelated drift turned up in the same workflow file days after publishing, which is the post's own argument arriving as evidence. New postscript in section 7.",
   },
   {
     slug: "anatomy-of-an-intermittent-500",
@@ -73,8 +75,8 @@ export const posts: Post[] = [
     kind: "interactive",
     repo: "falcosecurity/plugins",
     evidence: "no code changed, only linkage, verified on Debian 11, Ubuntu 24.04 and aarch64",
-    updated: "2026-09-03",
-    updateNote: "The fix merged. The maintainer then pointed out CI could never have caught the bug, which became a second contribution. New section 8.",
+    updated: "2026-09-04",
+    updateNote: "The fix merged, and the CI guard that followed it got a review that found my verification was only half done. Section 8 now covers what the guard missed and why, which turned out to be the same lesson as the bug itself.",
   },
   {
     slug: "anatomy-of-a-race-condition",
