@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
 import { ShareLinks } from "@/components/blog/ShareLinks";
+import { UpdatedNote } from "@/components/blog/UpdatedNote";
 
 /**
  * "The Anatomy of a Guard That Never Passed" - interactive essay.
@@ -32,6 +33,7 @@ export function GuardLab() {
           <h1>The Anatomy of a Guard That Never Passed</h1>
           <div className="byline">Manny Castillo &middot; Senior SDET &middot; September 2026</div>
           <NoteStats slug="anatomy-of-a-guard-that-never-passed" variant="post" />
+          <UpdatedNote slug="anatomy-of-a-guard-that-never-passed" />
           <ShareLinks slug="anatomy-of-a-guard-that-never-passed" placement="top" />
           <div className="hero-art">
             <Image
@@ -383,6 +385,32 @@ if (valid_pr_numbers.length === 0) {
           <b>Check whether the project already solved it.</b> The fix existed in a sibling
           repository for six months. Proposing something novel when a proven version is
           sitting one repository over creates review work for no gain. Ask before inventing.
+        </p>
+
+        <h3>A postscript that proved the point</h3>
+        <p>
+          Question 4 below asks what it means that three repositories carry byte-identical workflow
+          logic, and answers: it was copied, not shared, so a fix in one is invisible to the others.
+          That was a claim about shape when I wrote it. Days later it produced a second example on
+          its own.
+        </p>
+        <p>
+          Watching the pull request land, I noticed the same file fails a different way. The{" "}
+          <code>Download artifact</code> step filters run artifacts for one named <code>pr</code> and
+          takes <code>[0]</code> without checking anything came back:
+        </p>
+        <div className="log">{`TypeError: Cannot read properties of undefined (reading 'id')`}</div>
+        <p>
+          Twelve of the last twenty runs of that workflow had failed on it, all on{" "}
+          <code>main</code>. libs guards it, with an early exit when the filter returns nothing.
+          Plugins never got that either.
+        </p>
+        <p>
+          So the file had drifted in at least three places, and fixing the one I came for did not
+          fix the others, because nothing connects them. That is the difference between a bug and a
+          shape: a bug you fix once. A shape keeps producing bugs until someone changes the shape,
+          which here means a reusable workflow rather than three copies. I raised it on the pull
+          request rather than quietly widening a change a maintainer had already reviewed.
         </p>
 
         <h2 id="s8"><span className="num">8.</span> Check yourself</h2>

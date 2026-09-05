@@ -419,7 +419,7 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
           everything at load time is what turns a latent fault into a red build.
         </p>
         <p>
-          I proved it catches the original rather than assuming. Built a probe library calling{" "}
+          Before opening it I checked the guard rather than assuming. Built a probe library calling{" "}
           <code>res_search</code> two ways inside <code>debian:bullseye</code>:
         </p>
         <div className="log">{`glibc: ldd (Debian GLIBC 2.31-13+deb11u14) 2.31
@@ -438,11 +438,104 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
           libresolv.
         </p>
         <p>
+          I wrote &ldquo;proved&rdquo; in the first version of this section. It was not proved, and
+          the next section is about how I found that out.
+        </p>
+
+        <h3>Where that verification was hollow</h3>
+        <p>
+          The review came back <b>changes requested</b>, and it opened with something I had not
+          done:
+        </p>
+        <div className="note">
+          <span className="lbl">leogr, on the pull request</span>
+          <p>
+            &ldquo;I ran the two new steps against the real <code>libcontainer-amd64</code> artifact
+            built from main inside <code>debian:bullseye</code>. The readelf step passes, but the
+            dlopen step fails with <code>undefined symbol: pthread_mutex_trylock</code>. As is, this
+            would turn the next <code>plugins/container/**</code> PR red.&rdquo;
+          </p>
+        </div>
+        <p>
+          The probe was linked with <code>-ldl</code> alone. The real plugin embeds a Go runtime that
+          calls <code>pthread_*</code> and <code>dl*</code>, but declares no dependency on the
+          libraries those live in. Its whole <code>DT_NEEDED</code> list is{" "}
+          <code>libresolv.so.2</code>, <code>libc.so.6</code> and the loader. On glibc &lt; 2.34
+          those functions sit in <code>libpthread</code> and <code>libdl</code>, exactly as{" "}
+          <code>res_search</code> sat in <code>libresolv</code>.
+        </p>
+        <p>
+          It works in production because <b>Falco already links both</b> through libsinsp, so a
+          plugin loaded into that process resolves them from the global scope. My probe was a bare
+          program that linked almost nothing. It handed the plugin an emptier world than it ever
+          ships into, and demanded self-sufficiency the library has never needed.
+        </p>
+        <p>
+          So the guard would have failed <i>every healthy build</i>. Not the bug it was written to
+          catch. Every other one.
+        </p>
+        <div className="note">
+          <span className="lbl">What the table above was actually worth</span>
+          <p>
+            Both rows are true, and together they establish half of what matters. They show the guard
+            rejects a broken library. They say nothing about whether it accepts a working one,
+            because the only library I ever pointed it at was one I had written to be broken.
+          </p>
+          <p>
+            For a gate, that is the cheaper half. A check that misses a regression costs you the
+            regression. A check that fires on healthy builds blocks everyone until somebody deletes
+            it, and then you have neither the check nor the regression caught.
+          </p>
+        </div>
+        <p>
+          The fixture was the trap. My test object was two lines of C. The real one is 37MB with a
+          language runtime inside it. <b>A fixture you build yourself contains only what you thought
+          to put in it</b>, which means it can only ever test the failure you already imagined.
+        </p>
+        <p>
+          The fix links the probe the way Falco links, so it loads the plugin under the conditions
+          the plugin actually ships into:
+        </p>
+        <div className="log">{`-gcc -o /tmp/dlopen_check /tmp/dlopen_check.c -ldl
++gcc -o /tmp/dlopen_check /tmp/dlopen_check.c -Wl,--no-as-needed -lpthread -ldl`}</div>
+        <p>
+          <code>--no-as-needed</code> is load bearing. Linkers drop libraries the program does not
+          itself call, and the probe never calls <code>pthread_create</code>, so a plain{" "}
+          <code>-lpthread</code> would be discarded and nothing would change.
+        </p>
+        <p>
+          Then the verification I should have run the first time, against the real artifact from the
+          main branch and against the regression, using the workflow&rsquo;s steps extracted from the
+          YAML rather than my approximation of them:
+        </p>
+        <div className="log">{`real libcontainer.so, old probe   readelf PASS   dlopen FAIL   <- false positive
+real libcontainer.so, fixed probe  readelf PASS   dlopen PASS
+.so missing -lresolv, fixed probe  readelf FAIL   dlopen FAIL   <- #1500 still caught`}</div>
+        <p>
+          The middle row is the one that was missing. The bottom row is the one that matters after
+          loosening a check, because a guard relaxed until it stops crying wolf can quietly stop
+          catching wolves.
+        </p>
+        <p>
+          One more thing fell out of the review. The workflow only triggered on{" "}
+          <code>plugins/container/**</code>, so the steps I added <b>never ran on the pull request
+          that added them</b>. The green checks came from unrelated workflows, and I had read them as
+          evidence. Adding the workflow to its own path filter fixed that, and{" "}
+          <code>build-linux</code> now runs on changes to itself, which is how the corrected probe
+          came to be tested on amd64 and arm64 in their CI rather than only in my container.
+        </p>
+        <p>
           <b>The lesson is not about linkers.</b> When a bug survives a test suite, the useful
           question is not &ldquo;why did nobody write this test&rdquo; but{" "}
           <b>&ldquo;what would this test have had to run on?&rdquo;</b> The answer here was an
           environment the project builds on constantly and never executes in. Finding a bug is
           worth something. Removing the conditions that let it hide is worth more.
+        </p>
+        <p>
+          The question turned out to cut both ways. Their test suite never ran on an old glibc with
+          the library actually loaded. My test of that suite never ran on a real library. Same
+          question, one level up, and I did not think to ask it of my own work until somebody else
+          did. That is the part I would keep if I could only keep one thing from this.
         </p>
 
         <h2 id="s9"><span className="num">9.</span> Check yourself</h2>
@@ -477,6 +570,17 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             glibc 2.34 merged libresolv into libc, so every modern build and test machine papers
             over the missing dependency automatically. The bug only exists where the fix authors
             aren&rsquo;t standing.
+          </div>
+        </details>
+        <details>
+          <summary>5 &middot; A CI guard passes every test its author runs and is still wrong. What was not tested?</summary>
+          <div className="a">
+            That it accepts a healthy build. Testing that a check catches the bad case is the
+            instinct, because that is what the check is for. The other direction is the expensive
+            one: a check that misses a regression costs you the regression, while a check that
+            fires on good builds blocks everyone until someone deletes it, and then you have
+            neither. The trap here was the fixture. A two line shared object written to be broken
+            cannot exhibit the properties of a 37MB library with a language runtime in it.
           </div>
         </details>
 
