@@ -108,7 +108,7 @@ export class NoteStats extends DurableObject<Env> {
       deletions?: number;
       files?: number;
     };
-    const cached = await this.ctx.storage.get<Cached>("upstream:v5");
+    const cached = await this.ctx.storage.get<Cached>("upstream:v6");
     if (cached && Date.now() - cached.ts < UPSTREAM_TTL) {
       return {
         ...ids,
@@ -130,14 +130,16 @@ export class NoteStats extends DurableObject<Env> {
         additions?: number;
         deletions?: number;
         changed_files?: number;
+        requested_reviewers?: Array<{ login: string }>;
       };
-      // requested_reviewers is not a usable signal here: GitHub clears a
-      // reviewer from it once they submit, and CODEOWNERS populates it
-      // automatically on open. So an engaged PR can be empty and an
-      // untouched one can be full. Ask the reviews endpoint instead.
+      // requested_reviewers alone cannot say whether anyone has ruled:
+      // GitHub clears a reviewer from it once they submit, and CODEOWNERS
+      // fills it on open. The reviews endpoint decides; the list is only
+      // used to spot a reviewer whose verdict the author has re-requested.
       let verdict: "approved" | "changes_requested" | null = null;
       if (pr.state === "open" && !pr.merged_at) {
-        verdict = await this.reviewVerdict(cfg);
+        const again = new Set((pr.requested_reviewers ?? []).map((u) => u.login));
+        verdict = await this.reviewVerdict(cfg, again);
       }
       const state: Upstream["state"] = pr.merged_at
         ? "merged"
@@ -151,7 +153,7 @@ export class NoteStats extends DurableObject<Env> {
         deletions: pr.deletions,
         files: pr.changed_files,
       };
-      await this.ctx.storage.put("upstream:v5", entry);
+      await this.ctx.storage.put("upstream:v6", entry);
       return {
         ...ids,
         state,
@@ -171,14 +173,17 @@ export class NoteStats extends DurableObject<Env> {
   }
 
   /**
-   * Latest review verdict on an open PR. COMMENTED reviews are skipped:
-   * they do not change a PR's decision, and an author replying in threads
-   * files one every time. Returns null when nobody has ruled yet.
+   * The PR's standing review decision, the way GitHub computes it: each
+   * reviewer's latest verdict counts once. COMMENTED reviews are skipped (an
+   * author replying in threads files one every time), a DISMISSED review
+   * withdraws that reviewer's verdict, and a reviewer the author has
+   * re-requested is pending again. Any standing "changes requested" wins over
+   * approvals. Returns null when no verdict stands: awaiting review.
    */
-  private async reviewVerdict(cfg: {
-    repo: string;
-    pr: number;
-  }): Promise<"approved" | "changes_requested" | null> {
+  private async reviewVerdict(
+    cfg: { repo: string; pr: number },
+    rerequested: Set<string>,
+  ): Promise<"approved" | "changes_requested" | null> {
     try {
       const resp = await fetch(
         `https://api.github.com/repos/${cfg.repo}/pulls/${cfg.pr}/reviews?per_page=100`,
@@ -190,13 +195,21 @@ export class NoteStats extends DurableObject<Env> {
         },
       );
       if (!resp.ok) return null;
-      const reviews = (await resp.json()) as Array<{ state?: string }>;
-      let latest: "approved" | "changes_requested" | null = null;
+      const reviews = (await resp.json()) as Array<{
+        state?: string;
+        user?: { login?: string } | null;
+      }>;
+      const standing = new Map<string, "approved" | "changes_requested">();
       for (const r of reviews) {
-        if (r.state === "APPROVED") latest = "approved";
-        else if (r.state === "CHANGES_REQUESTED") latest = "changes_requested";
+        const who = r.user?.login ?? "";
+        if (r.state === "APPROVED") standing.set(who, "approved");
+        else if (r.state === "CHANGES_REQUESTED") standing.set(who, "changes_requested");
+        else if (r.state === "DISMISSED") standing.delete(who);
       }
-      return latest;
+      for (const who of rerequested) standing.delete(who);
+      const verdicts = [...standing.values()];
+      if (verdicts.includes("changes_requested")) return "changes_requested";
+      return verdicts.includes("approved") ? "approved" : null;
     } catch {
       return null;
     }

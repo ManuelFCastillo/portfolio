@@ -62,7 +62,7 @@ const HEART =
 
 const CHIP: Record<Upstream["state"], { label: string; cls: string } | null> = {
   merged: { label: "merged", cls: "ns-chip ns-merged" },
-  open: { label: "pending merge", cls: "ns-chip ns-open" },
+  open: { label: "awaiting review", cls: "ns-chip ns-open" },
   approved: { label: "approved", cls: "ns-chip ns-approved" },
   changes_requested: { label: "changes requested", cls: "ns-chip ns-changes" },
   closed: { label: "pr closed", cls: "ns-chip ns-closed" },
