@@ -21,6 +21,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 /** Keep in sync with the `ci` field on the specs in src/lib/resume.ts. */
 const PROJECTS = [
   { repo: "ManuelFCastillo/ask-the-library", slug: "ask-the-library", workflow: "ci.yml" },
+  { repo: "ManuelFCastillo/jobthing", slug: "jobthing", workflow: "test-report.yml" },
 ];
 
 const TOKEN = process.env.PROJECT_CI_TOKEN ?? process.env.GH_PROJECT_CI_TOKEN;

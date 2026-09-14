@@ -99,6 +99,8 @@ export function ResumeDocument() {
             <h3 className="print:text-[11pt] print:font-semibold">{spec.role}</h3>
             <p className="print:text-[9.5pt] print:italic">
               {spec.org} · {spec.stack.join(", ")}
+              {spec.links?.find((l) => l.kind === "demo") &&
+                ` · ${spec.links.find((l) => l.kind === "demo")!.href.replace(/^https?:\/\//, "")}`}
             </p>
             <ul className="print:ml-4 print:list-disc">
               {spec.tests.map((t) => (

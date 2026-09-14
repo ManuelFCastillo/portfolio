@@ -111,8 +111,8 @@ test.describe("HTML report", () => {
       .locator('[data-testid="spec-grid"][data-heading="projects"]')
       .getByRole("button");
 
-    // Personal projects first, internal tooling last.
-    await expect(cards.first()).toContainText("Ask the Library");
+    // The playable project leads; internal tooling last.
+    await expect(cards.first()).toContainText("Job Thing");
     await expect(cards.last()).toContainText("Tesseract");
 
     const grid = page.locator(
@@ -125,6 +125,42 @@ test.describe("HTML report", () => {
     // Personal work is the default and carries nothing.
     await expect(cards.first().getByTestId("internal-badge")).toHaveCount(0);
     await expect(cards.first().getByTestId("contract-badge")).toHaveCount(0);
+  });
+
+  test("Job Thing is marked live and offers its demo, documents and source", async ({
+    page,
+    request,
+  }) => {
+    const grid = page.locator('[data-testid="spec-grid"][data-heading="projects"]');
+    // Only a project you can open right now is live.
+    await expect(grid.getByTestId("live-badge")).toHaveCount(1);
+
+    await grid.getByRole("button", { name: /^Job Thing/ }).click();
+    const detail = page.getByTestId("spec-detail");
+    await expect(detail).toHaveAttribute("data-spec", "jobthing");
+
+    const links = detail.getByTestId("spec-links");
+    await expect(links.getByTestId("spec-link-demo")).toHaveAttribute(
+      "href",
+      "https://jobthing.vercel.app",
+    );
+    await expect(links.getByTestId("spec-link-source")).toHaveAttribute(
+      "href",
+      "https://github.com/ManuelFCastillo/jobthing",
+    );
+    await expect(links.getByTestId("spec-link-report")).toHaveAttribute("target", "_blank");
+
+    // Both documents download, and both actually exist as PDFs.
+    const docs = links.getByTestId("spec-link-doc");
+    await expect(docs).toHaveCount(2);
+    await expect(docs.first()).toContainText("Tech Spec");
+    await expect(docs.last()).toContainText("PRD");
+    for (const doc of await docs.all()) {
+      await expect(doc).toHaveAttribute("download", "");
+      const res = await request.get((await doc.getAttribute("href"))!);
+      expect(res.status()).toBe(200);
+      expect(res.headers()["content-type"]).toContain("pdf");
+    }
   });
 
   test("Fare reads as client work, not a side project", async ({ page }) => {

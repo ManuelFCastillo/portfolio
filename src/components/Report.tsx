@@ -12,6 +12,7 @@ import {
   suites,
   totals,
   type Spec,
+  type SpecLink,
   type Test,
 } from "@/lib/resume";
 import Image from "next/image";
@@ -367,6 +368,89 @@ function Shots({ shots }: { shots: Screenshot[] }) {
   );
 }
 
+const LINK_ICONS: Record<SpecLink["kind"], string> = {
+  // play
+  demo: "M8 5.5v13l10.5-6.5L8 5.5Z",
+  // page with a folded corner and a down arrow
+  doc: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z|M14 3v5h5|M12 11v6|M9.5 14.5 12 17l2.5-2.5",
+  // code brackets
+  source: "m8 7-5 5 5 5|m16 7 5 5-5 5",
+  // check in a box
+  report: "M4 4h16v16H4z|m8 12 3 3 5-6",
+};
+
+/**
+ * Square buttons for a project a reader can actually use: play it, read its
+ * documents, see its source and its test results. Documents download; the
+ * rest open in a new tab.
+ */
+function SpecLinks({ links }: { links: SpecLink[] }) {
+  return (
+    <div
+      data-testid="spec-links"
+      className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(6.25rem,1fr))] gap-2"
+    >
+      {links.map((link) => {
+        const primary = link.kind === "demo";
+        return (
+          <a
+            key={link.href}
+            href={link.href}
+            data-testid={`spec-link-${link.kind}`}
+            {...(link.download
+              ? { download: "" }
+              : { target: "_blank", rel: "noopener noreferrer" })}
+            className={`group flex aspect-square min-w-0 flex-col justify-between rounded-lg border p-3 transition-colors ${
+              primary
+                ? "border-accent/50 bg-accent/10 hover:border-accent hover:bg-accent/15"
+                : "border-line bg-panel/40 hover:border-accent/40 hover:bg-panel"
+            }`}
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill={primary ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+              className={`shrink-0 ${primary ? "text-accent" : "text-fg-dim transition-colors group-hover:text-accent"}`}
+            >
+              {LINK_ICONS[link.kind].split("|").map((d) => (
+                <path key={d} d={d} />
+              ))}
+            </svg>
+            <span className="block min-w-0">
+              <span
+                className={`block font-sans text-[13.5px] leading-tight font-semibold ${primary ? "text-accent" : "text-fg-strong"}`}
+              >
+                {link.label}
+              </span>
+              <span className="mt-1 block truncate text-[11px] text-fg-faint">{link.hint}</span>
+            </span>
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A project you can open and use right now, as opposed to read about. */
+function LiveBadge({ spec }: { spec: Spec }) {
+  if (!spec.links?.some((l) => l.kind === "demo")) return null;
+  return (
+    <span
+      data-testid="live-badge"
+      title="Playable in your browser"
+      className="shrink-0 rounded border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[10px] tracking-wide text-accent uppercase"
+    >
+      live
+    </span>
+  );
+}
+
 /**
  * Internal work is flagged because a reader cannot click through to it.
  * Contract work is flagged because paid client delivery is a different — and
@@ -633,6 +717,8 @@ export function SpecDetail({ spec }: { spec: Spec }) {
         ))}
       </div>
 
+      {spec.links && <SpecLinks links={spec.links} />}
+
       {spec.screenshots && <Shots shots={spec.screenshots} />}
 
       <h3 className="mt-9 mb-2 text-[11px] tracking-[0.12em] text-fg-faint uppercase">
@@ -704,6 +790,7 @@ function SpecGrid({
                   {spec.title}
                 </span>
                 <OriginBadge origin={spec.origin} />
+                <LiveBadge spec={spec} />
               </div>
               <p className="mt-1 truncate text-[12px] text-fg-dim">
                 {spec.kind === "project" ? spec.stack.slice(0, 3).join(" · ") : `${spec.org} · ${spec.period}`}

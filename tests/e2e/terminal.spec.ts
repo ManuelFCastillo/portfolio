@@ -53,7 +53,7 @@ test.describe("command line", () => {
   test("ls lists the projects suite alongside career", async ({ page }) => {
     await runCommand(page, "ls projects");
     const out = terminal(page);
-    for (const f of ["sorceror", "tesseract", "ask-the-library", "fare"]) {
+    for (const f of ["jobthing", "sorceror", "tesseract", "ask-the-library", "fare"]) {
       await expect(out).toContainText(`projects/${f}.spec.ts`);
     }
   });

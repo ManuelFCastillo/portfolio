@@ -79,6 +79,21 @@ export interface Spec {
    * period then reflects that repo's latest run, not this site's.
    */
   ci?: ProjectCi;
+  /**
+   * Projects a reader can go and use. Rendered as square buttons on the spec
+   * detail, and a project with a `demo` link is marked live in the grid.
+   */
+  links?: SpecLink[];
+}
+
+export interface SpecLink {
+  kind: "demo" | "doc" | "source" | "report";
+  label: string;
+  /** One line under the label: what opening it gives you. */
+  hint: string;
+  href: string;
+  /** Documents download rather than open in a new tab. */
+  download?: boolean;
 }
 
 export interface Screenshot {
@@ -725,6 +740,117 @@ const askTheLibrary: Spec = {
   ],
 };
 
+const jobthing: Spec = {
+  id: "jobthing",
+  file: "projects/jobthing.spec.ts",
+  title: "Job Thing",
+  kind: "project",
+  role: "Job Thing: a Spotify Car Thing, jailbroken into a job board for QA roles",
+  org: "Personal project",
+  location: "Car Thing + a Python server · playable on the web",
+  period: "Shipped",
+  ci: {
+    repo: "ManuelFCastillo/jobthing",
+    slug: "jobthing",
+    label: "Python unit tests plus Playwright API, kiosk UI and web demo suites",
+  },
+  links: [
+    { kind: "demo", label: "Play the demo", hint: "In browser", href: "https://jobthing.vercel.app" },
+    { kind: "doc", label: "Tech Spec", hint: "PDF · 5 pp", href: "/projects/jobthing/jobthing-tech-spec.pdf", download: true },
+    { kind: "doc", label: "PRD", hint: "PDF · 4 pp", href: "/projects/jobthing/jobthing-prd.pdf", download: true },
+    { kind: "source", label: "Source", hint: "GitHub", href: "https://github.com/ManuelFCastillo/jobthing" },
+    { kind: "report", label: "Test report", hint: "CI · videos", href: "https://manuelfcastillo.github.io/jobthing/" },
+  ],
+  brief:
+    "A discontinued Spotify Car Thing, jailbroken and turned into a desk device that does one thing: triage SDET and QA job postings. A Python server with no third-party packages pulls every open posting from about 90 company job boards each hour, keeps only real software quality roles, ranks them against my resume, and serves them to the Car Thing's 2018-era Chromium. Turn the dial through the cards, press to read, press again to save. The same kiosk UI runs unchanged in a web emulator on a daily snapshot of real postings, so anyone can try it, and every push runs the whole stack through Python and Playwright suites whose videos and coverage are published.",
+  stack: [
+    "Python",
+    "SQLite",
+    "JavaScript",
+    "Playwright",
+    "GitHub Actions",
+    "Chromium DevTools",
+    "Embedded Linux",
+    "Vercel",
+  ],
+  screenshots: [
+    {
+      src: "/shots/jobthing-demo.jpg",
+      width: 1600,
+      height: 836,
+      alt: "The Job Thing web demo: a Car Thing emulator showing three QA job cards from Veeva, Oura and Zoox, with a dial and back button on the right.",
+      caption:
+        "The web demo, on the same UI the device runs. A card carries only what the decision needs: company, title, the test tools the posting names, location, age, work mode and posted pay, with a star when the posting is a strong match for my resume.",
+    },
+  ],
+  tests: [
+    {
+      id: "jt-device",
+      title: "a jailbroken Car Thing runs the job board from its dial and five buttons",
+      duration: 2980,
+      status: "passed",
+      note: "Chromium 69 in kiosk mode on an 800x480 panel, talking to the server over USB ethernet. Every screen works with turn, press, hold and back, and the device itself never touches the internet.",
+      tags: ["Embedded Linux", "Kiosk", "Hardware"],
+    },
+    {
+      id: "jt-latency",
+      title: "a dial detent renders in 6 ms, down from 272 ms",
+      duration: 1320,
+      status: "passed",
+      note: "Profiled on the device over the Chrome DevTools Protocol: every detent was rebuilding every card. The rail now rebuilds only when the list changes, and a UI test asserts the cards survive a detent so the regression cannot come back quietly.",
+      tags: ["Performance", "DevTools", "Regression Test"],
+    },
+    {
+      id: "jt-sources",
+      title: "about 90 company job boards are fetched hourly, with no third-party packages",
+      duration: 3410,
+      status: "passed",
+      note: "Greenhouse, Lever, Ashby and SmartRecruiters public APIs plus two aggregators, in parallel, pruning postings only after a fetch succeeds. The server is Python's standard library and SQLite.",
+      tags: ["Python", "SQLite", "APIs"],
+    },
+    {
+      id: "jt-matching",
+      title: "QA roles are told apart from manufacturing and food-safety quality",
+      duration: 2240,
+      status: "passed",
+      note: "Titles are matched with include and exclude patterns, because the obvious keywords mislead. Every pattern change starts with a test built from a real posting that fooled an earlier version.",
+      tags: ["Classification", "Test Data"],
+    },
+    {
+      id: "jt-ranking",
+      title: "every card can say why it ranks where it does",
+      duration: 1610,
+      status: "passed",
+      note: "A 0 to 100 score from named rules: title fit, resume skills, seniority, location and freshness. No model output to explain away.",
+      tags: ["Ranking", "Explainability"],
+    },
+    {
+      id: "jt-tests",
+      title: "184 tests run on every push, with a video of every browser test",
+      duration: 4150,
+      status: "passed",
+      note: "125 Python unit tests and 59 Playwright tests across three projects: the HTTP contract, the kiosk UI driven like hardware at 800x480, and the web demo. Results, traces, videos and both Python and JavaScript coverage are published to a public report.",
+      tags: ["Playwright", "unittest", "Coverage", "CI/CD"],
+    },
+    {
+      id: "jt-demo",
+      title: "the web demo runs the unchanged kiosk UI on a daily snapshot",
+      duration: 1880,
+      status: "passed",
+      note: "A shim answers the kiosk's API calls from a snapshot rebuilt every morning, and each visitor's presets and saved jobs stay in their own browser. Saved jobs export as a printable checklist.",
+      tags: ["Vercel", "Static Site"],
+    },
+    {
+      id: "jt-apply",
+      title: "Apply with Claude prepares an application and stops before Submit",
+      duration: 2760,
+      status: "passed",
+      note: "The tailored resume is checked in code against the master resume, so no employer, date, number or tool can be invented. The form is filled in Chrome and left for me to review; it never signs in or answers self-identification questions.",
+      tags: ["AI", "Guardrails", "Automation"],
+    },
+  ],
+};
+
 const fare: Spec = {
   id: "fare",
   file: "projects/fare.spec.ts",
@@ -943,7 +1069,7 @@ export const suites: Suite[] = [
   {
     id: "projects",
     title: "projects",
-    specs: [askTheLibrary, fare, tiengviet, sorceror, tesseract],
+    specs: [jobthing, askTheLibrary, fare, tiengviet, sorceror, tesseract],
   },
   {
     id: "education",
