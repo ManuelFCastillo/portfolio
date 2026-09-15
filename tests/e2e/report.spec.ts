@@ -151,17 +151,21 @@ test.describe("HTML report", () => {
     await expect(detail.locator('a[href*="github.com/ManuelFCastillo/jobthing"], a[href*="github.io/jobthing"]'))
       .toHaveCount(0);
 
-    // Both documents download, and both actually exist as PDFs.
-    const docs = links.getByTestId("spec-link-doc");
-    await expect(docs).toHaveCount(2);
-    await expect(docs.first()).toContainText("Tech Spec");
-    await expect(docs.last()).toContainText("PRD");
-    for (const doc of await docs.all()) {
-      await expect(doc).toHaveAttribute("download", "");
-      const res = await request.get((await doc.getAttribute("href"))!);
-      expect(res.status()).toBe(200);
-      expect(res.headers()["content-type"]).toContain("pdf");
-    }
+    // The PRD downloads, and actually exists as a PDF.
+    const prd = links.getByTestId("spec-link-doc");
+    await expect(prd).toHaveCount(1);
+    await expect(prd).toContainText("PRD");
+    await expect(prd).toHaveAttribute("download", "");
+    const res = await request.get((await prd.getAttribute("href"))!);
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("pdf");
+
+    // The Tech Spec is shared on request: an email asking for it, and no public copy left behind.
+    const spec = links.getByTestId("spec-link-request");
+    await expect(spec).toContainText("Tech Spec");
+    await expect(spec).toContainText("On request");
+    await expect(spec).toHaveAttribute("href", /^mailto:[^?]+@[^?]+\?subject=Job%20Thing%20Tech%20Spec$/);
+    expect((await request.get("/projects/jobthing/jobthing-tech-spec.pdf")).status()).toBe(404);
   });
 
   test("Fare reads as client work, not a side project", async ({ page }) => {

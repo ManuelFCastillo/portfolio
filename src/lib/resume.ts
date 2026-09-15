@@ -87,11 +87,15 @@ export interface Spec {
 }
 
 export interface SpecLink {
-  kind: "demo" | "doc" | "source" | "report";
+  /** "request": a document shared on request, which opens an email instead of downloading. */
+  kind: "demo" | "doc" | "source" | "report" | "request";
   label: string;
   /** One line under the label: what opening it gives you. */
   hint: string;
+  /** Not used by "request": the address is decoded in the browser, like every email link. */
   href: string;
+  /** "request" only: the email's subject line. */
+  subject?: string;
   /** Documents download rather than open in a new tab. */
   download?: boolean;
 }
@@ -756,8 +760,8 @@ const jobthing: Spec = {
   },
   links: [
     { kind: "demo", label: "Play the demo", hint: "In browser", href: "https://jobthing.vercel.app" },
-    { kind: "doc", label: "Tech Spec", hint: "PDF · 5 pp", href: "/projects/jobthing/jobthing-tech-spec.pdf", download: true },
     { kind: "doc", label: "PRD", hint: "PDF · 4 pp", href: "/projects/jobthing/jobthing-prd.pdf", download: true },
+    { kind: "request", label: "Tech Spec", hint: "On request", href: "", subject: "Job Thing Tech Spec" },
   ],
   brief:
     "A discontinued Spotify Car Thing, jailbroken and turned into a desk device that does one thing: triage SDET and QA job postings. A Python server with no third-party packages pulls every open posting from about 90 company job boards each hour, keeps only real software quality roles, ranks them against my resume, and serves them to the Car Thing's 2018-era Chromium. Turn the dial through the cards, press to read, press again to save. The same kiosk UI runs unchanged in a web emulator on a daily snapshot of real postings, so anyone can try it, and every push runs the whole stack through Python and Playwright suites that record a video of every browser test.",

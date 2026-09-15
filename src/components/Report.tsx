@@ -16,11 +16,12 @@ import {
   type Test,
 } from "@/lib/resume";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useRunner } from "@/lib/runner-context";
 import { fmt } from "./Lines";
 import { Email } from "./Email";
+import { decodeEmail, mailtoHref } from "@/lib/email";
 import { Phone } from "./Phone";
 import { ProjectCiBadge } from "./CiStatus";
 
@@ -377,29 +378,43 @@ const LINK_ICONS: Record<SpecLink["kind"], string> = {
   source: "m8 7-5 5 5 5|m16 7 5 5-5 5",
   // check in a box
   report: "M4 4h16v16H4z|m8 12 3 3 5-6",
+  // padlock
+  request: "M6 11h12v10H6z|M8.5 11V8a3.5 3.5 0 0 1 7 0v3",
 };
+
+const noSubscribe = () => () => {};
 
 /**
  * Square buttons for a project a reader can actually use: play it, read its
- * documents, see its source and its test results. Documents download; the
- * rest open in a new tab.
+ * documents, see its source and its test results. Documents download; one
+ * shared on request opens an email asking for it; the rest open in a new tab.
  */
 function SpecLinks({ links }: { links: SpecLink[] }) {
+  // decoded in the browser only, so the address never sits in the server HTML (see lib/email.ts)
+  const email = useSyncExternalStore(noSubscribe, decodeEmail, () => "");
   return (
     <div
       data-testid="spec-links"
-      className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(6.25rem,1fr))] gap-2"
+      className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(6.25rem,8.5rem))] gap-2"
     >
       {links.map((link) => {
         const primary = link.kind === "demo";
         return (
           <a
-            key={link.href}
-            href={link.href}
+            key={link.label}
+            href={
+              link.kind === "request"
+                ? email
+                  ? `${mailtoHref(email)}?subject=${encodeURIComponent(link.subject ?? link.label)}`
+                  : undefined
+                : link.href
+            }
             data-testid={`spec-link-${link.kind}`}
             {...(link.download
               ? { download: "" }
-              : { target: "_blank", rel: "noopener noreferrer" })}
+              : link.kind === "request"
+                ? {}
+                : { target: "_blank", rel: "noopener noreferrer" })}
             className={`group flex aspect-square min-w-0 flex-col justify-between rounded-lg border p-3 transition-colors ${
               primary
                 ? "border-accent/50 bg-accent/10 hover:border-accent hover:bg-accent/15"
