@@ -127,7 +127,7 @@ test.describe("HTML report", () => {
     await expect(cards.first().getByTestId("contract-badge")).toHaveCount(0);
   });
 
-  test("Job Thing is marked live and offers its demo, documents and source", async ({
+  test("Job Thing is marked live and offers its demo and documents, not its private code", async ({
     page,
     request,
   }) => {
@@ -144,11 +144,12 @@ test.describe("HTML report", () => {
       "href",
       "https://jobthing.vercel.app",
     );
-    await expect(links.getByTestId("spec-link-source")).toHaveAttribute(
-      "href",
-      "https://github.com/ManuelFCastillo/jobthing",
-    );
-    await expect(links.getByTestId("spec-link-report")).toHaveAttribute("target", "_blank");
+    await expect(links.getByTestId("spec-link-demo")).toHaveAttribute("target", "_blank");
+    // The repo is private: a link to it, or to its old public report, is a 404 for visitors.
+    await expect(links.getByTestId("spec-link-source")).toHaveCount(0);
+    await expect(links.getByTestId("spec-link-report")).toHaveCount(0);
+    await expect(detail.locator('a[href*="github.com/ManuelFCastillo/jobthing"], a[href*="github.io/jobthing"]'))
+      .toHaveCount(0);
 
     // Both documents download, and both actually exist as PDFs.
     const docs = links.getByTestId("spec-link-doc");
