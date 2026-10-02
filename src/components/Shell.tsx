@@ -28,7 +28,7 @@ function Tab({
       onClick={onClick}
       data-testid={testId}
       aria-current={active ? "page" : undefined}
-      className={`relative flex items-center gap-2 px-3 py-1.5 text-[12.5px] transition-colors ${
+      className={`relative flex items-center gap-2 px-2 py-1.5 text-[12.5px] sm:px-3 transition-colors ${
         active ? "text-fg-strong" : "text-fg-dim hover:text-fg"
       }`}
     >
@@ -84,6 +84,7 @@ export function Shell() {
             </span>
           </div>
 
+          {/* Four tabs on a phone: tighter padding below sm keeps the row inside 360px screens. */}
           <div className="flex shrink-0 items-center">
             <Tab
               label="Terminal"
@@ -109,14 +110,14 @@ export function Shell() {
             <Link
               href="/projects"
               data-testid="tab-projects"
-              className="relative flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-fg-dim transition-colors hover:text-fg"
+              className="relative flex items-center gap-2 px-2 py-1.5 text-[12.5px] sm:px-3 text-fg-dim transition-colors hover:text-fg"
             >
               Projects
             </Link>
             <Link
               href="/blog"
               data-testid="tab-field-notes"
-              className="relative flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-fg-dim transition-colors hover:text-fg"
+              className="relative flex items-center gap-2 px-2 py-1.5 text-[12.5px] sm:px-3 text-fg-dim transition-colors hover:text-fg"
             >
               Field Notes
             </Link>
