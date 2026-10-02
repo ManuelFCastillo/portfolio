@@ -389,7 +389,7 @@ const noSubscribe = () => () => {};
  * documents, see its source and its test results. Documents download; one
  * shared on request opens an email asking for it; the rest open in a new tab.
  */
-function SpecLinks({ links }: { links: SpecLink[] }) {
+export function SpecLinks({ links }: { links: SpecLink[] }) {
   // decoded in the browser only, so the address never sits in the server HTML (see lib/email.ts)
   const email = useSyncExternalStore(noSubscribe, decodeEmail, () => "");
   return (

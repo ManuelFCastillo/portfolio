@@ -111,8 +111,8 @@ test.describe("HTML report", () => {
       .locator('[data-testid="spec-grid"][data-heading="projects"]')
       .getByRole("button");
 
-    // The playable project leads; internal tooling last.
-    await expect(cards.first()).toContainText("Job Thing");
+    // The playable projects lead; internal tooling last.
+    await expect(cards.first()).toContainText("Cur8");
     await expect(cards.last()).toContainText("Tesseract");
 
     const grid = page.locator(
@@ -132,8 +132,8 @@ test.describe("HTML report", () => {
     request,
   }) => {
     const grid = page.locator('[data-testid="spec-grid"][data-heading="projects"]');
-    // Only a project you can open right now is live.
-    await expect(grid.getByTestId("live-badge")).toHaveCount(1);
+    // Only a project you can open right now is live: Job Thing, Cur8 and Ryōri Quest.
+    await expect(grid.getByTestId("live-badge")).toHaveCount(3);
 
     await grid.getByRole("button", { name: /^Job Thing/ }).click();
     const detail = page.getByTestId("spec-detail");

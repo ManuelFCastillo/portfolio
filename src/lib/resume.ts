@@ -75,6 +75,38 @@ export interface Spec {
   /** Evidence, for projects a reader cannot otherwise see running. */
   screenshots?: Screenshot[];
   /**
+   * Phone-first projects. Their screens are shown in a phone frame, with a way
+   * to play at phone size: a phone-shaped window on desktop, or a QR code to
+   * scan with an actual phone.
+   */
+  phone?: { screenshots: Screenshot[]; qr?: string; qrHint?: string };
+  /**
+   * Projects only. What the work involved, in the words a recruiter searches
+   * for (RAG, Vector Search, E2E Automation…), each with a line on what it
+   * meant here. Shown as chips on the gallery, explained on hover, and used to
+   * filter it, so every one must be true of this project.
+   */
+  skills?: Skill[];
+  /**
+   * Projects only. One or two technical sentences for the gallery tile: what
+   * it's built on, how it works, how it's tested. The tagline (`role`) stays
+   * on the project page.
+   */
+  summary?: string;
+  /** The name in its own language, shown beside the title, e.g. 料理クエスト. */
+  titleNative?: string;
+  /** The gallery tile's picture, when the first screenshot isn't the best one. */
+  cover?: string;
+  /** A muted loop of the cover that plays when the tile is hovered. */
+  coverVideo?: string;
+  /** "contain" shows the whole picture in the tile instead of filling it (wide device mockups). */
+  coverFit?: "contain";
+  /**
+   * Client work that can't be shown. Said plainly where the screenshots would
+   * be, so the absence reads as a confidentiality line, not a missing picture.
+   */
+  proprietary?: string;
+  /**
    * Projects that run their own suite in their own repo. The badge beside the
    * period then reflects that repo's latest run, not this site's.
    */
@@ -84,6 +116,12 @@ export interface Spec {
    * detail, and a project with a `demo` link is marked live in the grid.
    */
   links?: SpecLink[];
+}
+
+/** A skill as it applied to one project: the tag, and a line on what it meant there. */
+export interface Skill {
+  name: string;
+  note: string;
 }
 
 export interface SpecLink {
@@ -108,6 +146,8 @@ export interface Screenshot {
   alt: string;
   /** Shown beneath the image — say what is worth noticing. */
   caption: string;
+  /** A short muted loop played in place of the image; `src` is its poster. */
+  video?: string;
 }
 
 export interface Suite {
@@ -507,6 +547,15 @@ const sorceror: Spec = {
   file: "projects/sorceror.spec.ts",
   title: "Sorceror",
   kind: "project",
+  summary:
+    "Chrome extension overlay on Sorcero's product: one-click auth tokens, project internals the UI hid, and test-project management, cached so it stays instant in every environment.",
+  skills: [
+    { name: "Internal Tooling", note: "Built in-house for Sorcero's quality engineers, who used it daily." },
+    { name: "Chrome Extension", note: "An overlay on the product page itself, so the numbers testers needed sat right next to the UI." },
+    { name: "Auth", note: "Getting an auth token went from a manual chore to one click to the clipboard." },
+    { name: "Caching", note: "Responses are cached so the overlay stays instant." },
+    { name: "Developer Experience", note: "It removed the setup work around regression testing that had nothing to do with testing." },
+  ],
   origin: "internal",
   role: "Sorceror — Chrome extension for regression testing",
   org: "Internal tool · Sorcero",
@@ -578,6 +627,15 @@ const tesseract: Spec = {
   file: "projects/tesseract.spec.ts",
   title: "Sorcero: Tesseract",
   kind: "project",
+  summary:
+    "Three.js and D3 map of live microservices, each wired to the Playwright specs that cover it. Runs start from the map, and disaster-recovery results are compared across two regions.",
+  skills: [
+    { name: "Microservices", note: "A live map of the active microservices, each wired to the specs that cover it." },
+    { name: "Visualization", note: "Built with Three.js and D3, so coverage and health read spatially instead of in a terminal." },
+    { name: "Test Orchestration", note: "Playwright runs start from the map instead of the command line." },
+    { name: "Disaster Recovery", note: "Disaster-recovery drill results are compared side by side across two regions." },
+    { name: "Multi-region", note: "Both regions' runs are shown together, with history kept from each run's output." },
+  ],
   origin: "internal",
   role: "Tesseract — a visual Playwright runner for disaster recovery",
   org: "Internal tool · Sorcero",
@@ -642,6 +700,18 @@ const askTheLibrary: Spec = {
   file: "projects/ask-the-library.spec.ts",
   title: "Ask the Library",
   kind: "project",
+  summary:
+    "RAG over 7.5M passages from 50,700 books: Elasticsearch kNN on local embeddings, FastAPI, and streamed answers from Ollama. Tested by a deterministic offline Playwright suite and a live smoke suite.",
+  skills: [
+    { name: "RAG", note: "Answers are grounded in retrieved passages and stream back with citations from self-hosted models." },
+    { name: "Vector Search", note: "Elasticsearch kNN over 7.5M passages, with cold-cache latency cut from 17 s to 0.2 s." },
+    { name: "Embeddings", note: "Passage embeddings are computed locally for 50,700 books, with no cloud API." },
+    { name: "Self-hosted LLMs", note: "Ollama serves 14B, 3B and 1B models across a two-node home lab." },
+    { name: "Agentic Pipeline", note: "An ingestion agent gates new books with OCR heuristics, scan-boilerplate detection and an LLM sniff test." },
+    { name: "Computer Vision", note: "Cover scans are scored by Laplacian variance and a vision model, then regenerated with Stable Diffusion." },
+    { name: "E2E Automation", note: "Eleven Playwright specs, made deterministic by serving fixtures at the network layer." },
+    { name: "Smoke Testing", note: "A live suite against real infrastructure caught GPU contention starving search before users did." },
+  ],
   role: "Ask the Library — self-hosted AI reading platform over 50,000 books",
   org: "Personal project",
   location: "Two-node home lab",
@@ -749,6 +819,21 @@ const jobthing: Spec = {
   file: "projects/jobthing.spec.ts",
   title: "Job Thing",
   kind: "project",
+  summary:
+    "Jailbroken Car Thing running Chromium 69, fed by a standard-library Python and SQLite server that pulls about 90 job boards hourly. 184 Python and Playwright tests run on every push.",
+  skills: [
+    { name: "Embedded Linux", note: "A jailbroken Spotify Car Thing runs Chromium 69 in kiosk mode on its 800×480 panel." },
+    { name: "Hardware Testing", note: "The kiosk UI is tested the way it's used: at 800×480, driven by the dial and five buttons." },
+    { name: "Performance Profiling", note: "Profiled on the device over Chrome DevTools: one dial detent went from 272 ms to 6 ms." },
+    { name: "E2E Automation", note: "59 Playwright tests across the HTTP contract, the kiosk UI and the web demo, with a video of each." },
+    { name: "API Testing", note: "Greenhouse, Lever, Ashby and SmartRecruiters APIs are fetched hourly, and the server's HTTP contract has its own suite." },
+    { name: "CI/CD", note: "184 tests run on every push in GitHub Actions, producing a report with traces, videos and coverage." },
+    { name: "Ranking & Classification", note: "QA roles are told apart by include and exclude rules, then scored 0–100 by named, explainable rules." },
+    { name: "AI Guardrails", note: "Apply with Claude checks the tailored resume against the master resume in code, and stops before Submit." },
+  ],
+  cover: "/shots/jobthing-cover.jpg",
+  coverVideo: "/shots/jobthing-browse.mp4",
+  coverFit: "contain",
   role: "Job Thing: a Spotify Car Thing, jailbroken into a job board for QA roles",
   org: "Personal project",
   location: "Car Thing + a Python server · playable on the web",
@@ -853,16 +938,355 @@ const jobthing: Spec = {
   ],
 };
 
+/**
+ * Both betas sit behind an invite gate. These codes are for anyone reading
+ * the portfolio, so the links work; each one has to exist on the app's side
+ * (Cur8: Admin → Invites; Ryōri Quest: INVITE_CODES in Vercel), and both apps
+ * count sign-ins per code, so visits from here show up on their own.
+ */
+const CUR8_CODE = "cur8-portfolio";
+const RYORI_CODE = "portfolio";
+const CUR8_PLAYLIST = "https://cur8music.app/p/highway-coastline-vibes-33ba65";
+
+const cur8: Spec = {
+  id: "cur8",
+  file: "projects/cur8.spec.ts",
+  title: "Cur8",
+  kind: "project",
+  summary:
+    "An LLM grounded by RAG over hand-curated crates of real recordings curates each playlist, with crate rules enforced in code. A two-tier eval harness scores routing, invented songs and rule leaks against 24 golden prompts.",
+  skills: [
+    { name: "RAG", note: "Each request is grounded in hand-curated crates of real recordings: the model picks crates, and the songs come from them." },
+    { name: "LLM Evaluation", note: "A two-tier harness: free deterministic checks on every change, then real model runs scored prompt by prompt." },
+    { name: "Golden Datasets", note: "24 golden prompts list the right crates, the crates that must never fire, and artists the rules must block or keep." },
+    { name: "Hallucination Metrics", note: "Every suggested song is looked up in the catalog; any that can't be found is counted as invented." },
+    { name: "Guardrails", note: "Crate rules are enforced in code, and the harness still counts how often the model tried to break them." },
+    { name: "Model Comparison", note: "The same golden set runs against models from more than one provider by changing one flag." },
+    { name: "Data Enrichment", note: "Songs carry MusicBrainz credits and Last.fm tags, and the harness checks the AI's tags against those credits." },
+    { name: "Mobile-first QA", note: "Designed for phones first, down to the sideways tape-deck player and the compact portrait player." },
+  ],
+  role: "Cur8: playlists for a moment, grounded in hand-curated crates and measured by an eval harness",
+  org: "Personal project",
+  location: "cur8music.app · phone-first, invite preview",
+  period: "In progress",
+  links: [
+    {
+      kind: "demo",
+      label: "Play a playlist",
+      hint: "Shared link, no code needed",
+      href: CUR8_PLAYLIST,
+    },
+    {
+      kind: "demo",
+      label: "Make your own",
+      hint: `Invite code ${CUR8_CODE} is filled in`,
+      href: `https://cur8music.app/?code=${CUR8_CODE}`,
+    },
+  ],
+  cover: "/shots/cur8-signup.jpg",
+  coverVideo: "/shots/cur8-signup.mp4",
+  phone: {
+    qr: "/shots/cur8-qr.svg",
+    qrHint: "Scan it, press Play, then turn your phone sideways.",
+    screenshots: [
+      {
+        src: "/shots/cur8-m-gate.jpg",
+        width: 780,
+        height: 1688,
+        alt: "The Cur8 invite page: a cassette logo over a colour wash, Playlists for a moment, made to share, an invite code box and a Join the waitlist link.",
+        caption: "The beta sign-up: making playlists is invite-only for now, but anyone can open a shared one. Use the arrows to see one.",
+      },
+      {
+        src: "/shots/cur8-m-coast.jpg",
+        width: 780,
+        height: 1688,
+        alt: "A shared Cur8 playlist, Highway Coastline Vibes: a four-cover mosaic, a one-line description, the prompt it was made from (Driving up the coast music), 20 songs, 1 hr 14 min, and a yellow Play button.",
+        caption: "A playlist made from one line, “Driving up the coast music”. Anyone with the link can play it, no account needed.",
+      },
+      {
+        src: "/shots/cur8-m-player.jpg",
+        width: 780,
+        height: 1688,
+        alt: "The player open over the playlist: the music video for Galaxy Drive by VrTigo Music, track 1 of 20, a progress bar and play controls.",
+        caption: "Press Play and songs stream through YouTube, one after another.",
+      },
+      {
+        src: "/shots/cur8-tapedeck-poster.jpg",
+        width: 1200,
+        height: 554,
+        video: "/shots/cur8-tapedeck.mp4",
+        alt: "The phone turned sideways: the player becomes a cassette, with the music video as the tape window between two spinning reels, the song title hand-lettered on the label, and transport buttons below.",
+        caption: "Turn the phone sideways and the player becomes a tape deck. The reels spin only while the music plays.",
+      },
+      {
+        src: "/shots/cur8-m-anime.jpg",
+        width: 780,
+        height: 1688,
+        alt: "Another playlist, Mid-80s Anime Voices: Dreamy & Beautiful, with four 1980s Japanese single covers, made from the prompt give me some mid 80s anime singers with beautiful voices, 13 songs from 1983 to 1987.",
+        caption: "Every song is a real recording, checked against the catalog, so a niche request gets real 1983–1987 singles instead of invented ones.",
+      },
+    ],
+  },
+  brief:
+    "Describe a moment and who it's for, and Cur8 returns a playlist of real songs behind one link that opens in Spotify, Apple Music or YouTube. The AI is only half of it. A retrieval layer I call ragTime grounds each request in hand-curated crates of real recordings, enriched with MusicBrainz facts and Last.fm tags, and crate rules (whose songs may never appear with whose) are enforced in code, not left to the prompt. Retrieval is over curated lists, not embeddings. Whether the model picked the right crate, invented songs or leaked a banned artist is answered by a two-tier eval harness with a golden set, and every run is saved so runs can be compared.",
+  stack: [
+    "TypeScript",
+    "Next.js",
+    "LLMs",
+    "RAG",
+    "LLM Evaluation",
+    "MusicBrainz",
+    "Spotify API",
+    "Vercel",
+  ],
+  tests: [
+    {
+      id: "cur8-two-tier",
+      title: "a two-tier eval harness separates free deterministic checks from paid model runs",
+      duration: 4210,
+      status: "passed",
+      note: "The offline tier runs on every change in about five seconds with no AI calls: keyword routing plus rule invariants (a crate never bans its own songs; nothing reached through the taste graph breaks a rule). The model tier makes the real calls and measures crate choice, invented or missing songs, and rule leaks per prompt.",
+      tags: ["LLM Evaluation", "Determinism", "Test Design"],
+    },
+    {
+      id: "cur8-golden",
+      title: "24 golden prompts across 14 crates define what right looks like",
+      duration: 2630,
+      status: "passed",
+      note: "Each case lists the crates that would be right, the crates that must never fire, artists the rules must block or keep, and what the model should read from the request (vocals, fame). A no-crate case asserts that nothing fires at all.",
+      tags: ["Golden Dataset", "Test Data"],
+    },
+    {
+      id: "cur8-hallucination",
+      title: "invented songs are counted by looking every suggestion up in the catalog",
+      duration: 3380,
+      status: "passed",
+      note: "Every song the model suggests is resolved against the streaming catalog. A suggestion that can't be found is counted as invented or missing, so hallucination is a number per run rather than an impression.",
+      tags: ["Hallucination", "Grounding"],
+    },
+    {
+      id: "cur8-guardrails",
+      title: "rule leaks are blocked in code and still measured",
+      duration: 2190,
+      status: "passed",
+      note: "The model can propose a banned artist; the code removes it before the listener sees it. The harness reports how often that happened, so a prompt change that makes the model lean on the guardrail shows up even though users never see the leak.",
+      tags: ["Guardrails", "Defense in Depth"],
+    },
+    {
+      id: "cur8-engines",
+      title: "the same golden set runs against models from more than one provider",
+      duration: 1870,
+      status: "passed",
+      note: "The engine is a flag on the harness, so model choice is a comparison on the same cases, not a guess. 13 saved runs so far, timestamped for diffing.",
+      tags: ["Model Selection", "LLMs"],
+    },
+    {
+      id: "cur8-facts",
+      title: "the AI's song tags are checked against MusicBrainz credits",
+      duration: 2950,
+      status: "passed",
+      note: "The harness reports how often the tagger's vocal/instrumental label agrees with what each crate implies, and whether MusicBrainz performer credits back it up. It also counts duplicate compositions per crate, so one piece doesn't fill a playlist under five recordings.",
+      tags: ["Data Quality", "Validation"],
+    },
+    {
+      id: "cur8-units",
+      title: "36 unit tests cover the taste graph, catalog matching and facets",
+      duration: 1460,
+      status: "passed",
+      note: "The rule graph, Spotify matching, song facets, YouTube link refresh and Apple Music key handling each have their own tests, run with Node's test runner.",
+      tags: ["Unit Testing", "TypeScript"],
+    },
+  ],
+};
+
+const ryoriquest: Spec = {
+  id: "ryoriquest",
+  file: "projects/ryoriquest.spec.ts",
+  title: "Ryōri Quest",
+  titleNative: "料理クエスト",
+  kind: "project",
+  summary:
+    "Vite PWA with Supabase accounts and an invite gate checked on the server. Playwright plays whole dishes at phone and desktop sizes; Mochiyuko's voice is Kokoro TTS generated on a local GPU.",
+  skills: [
+    { name: "Game Testing", note: "Playwright plays a whole dish: chapters, unlocking, stars, XP, stamps and the victory screen." },
+    { name: "E2E Automation", note: "Browser playthroughs run against the built game at phone and desktop sizes and fail on any page error." },
+    { name: "Mobile-first QA", note: "Every step is checked to fit a 390px-wide phone with no sideways scrolling." },
+    { name: "Access Control", note: "An invite gate in server middleware with signed cookies; tests cover typed codes, one-tap links and which paths skip it." },
+    { name: "Content Moderation", note: "Display names are tidied, length-checked and screened by a profanity filter before anyone else sees them." },
+    { name: "Text-to-Speech", note: "Mochiyuko's lines are Kokoro TTS generated on a local GPU, and a voice actor can replace any line." },
+    { name: "Smoke Testing", note: "After each deploy, a script checks from outside that APIs refuse visitors and a wrong code is rejected." },
+    { name: "Observability", note: "Game analytics, players per invite code, and a live strip of who is playing, in an admin report." },
+  ],
+  coverVideo: "/shots/ryoriquest-play.mp4",
+  role: "Ryōri Quest: a phone-first game for learning Japanese by cooking",
+  org: "Personal project",
+  location: "beta.ryoriquest.com · invite beta",
+  period: "In progress",
+  links: [
+    {
+      kind: "demo",
+      label: "Play the beta",
+      hint: "One tap, invite included",
+      href: `https://beta.ryoriquest.com/?invite=${RYORI_CODE}`,
+    },
+  ],
+  phone: {
+    qr: "/shots/ryoriquest-qr.svg",
+    qrHint: "Scan to play, and add it to your home screen like an app.",
+    screenshots: [
+      {
+        src: "/shots/ryoriquest-m-title.jpg",
+        width: 780,
+        height: 1688,
+        alt: "The title screen: Mochiyuko in her kitchen under the 料理クエスト sign, with はじめる Start, つづき Continue and せってい Settings buttons.",
+        caption: "The title screen, sized for a phone held in one hand.",
+      },
+      {
+        src: "/shots/ryoriquest-m-chapters.jpg",
+        width: 780,
+        height: 1688,
+        alt: "The chapter screen: Mochiyuko asks どれを作る? (what shall we make today?), above a level bar and two chapter cards, Home Cooking open and Street Food locked.",
+        caption: "Chapters unlock in order. Mochiyuko speaks every line in Japanese, with romaji and English under it.",
+      },
+      {
+        src: "/shots/ryoriquest-m-step1.jpg",
+        width: 780,
+        height: 1688,
+        alt: "Step 1 of onigiri: Mochiyuko says ごはんをください (rice, please) and the player picks the rice bowl from six ingredient tiles.",
+        caption: "Mini-game 1: she asks for an ingredient in Japanese, and you tap the right one.",
+      },
+      {
+        src: "/shots/ryoriquest-m-step2.jpg",
+        width: 780,
+        height: 1688,
+        alt: "Step 2: choose the filling, うめぼし pickled plum or さけ salmon.",
+        caption: "Mini-game 2: pick the filling. Every choice is a word you're learning.",
+      },
+      {
+        src: "/shots/ryoriquest-m-step3.jpg",
+        width: 780,
+        height: 1688,
+        alt: "Step 3: a rhythm game, tap when the gold ring lands on the dashed circle to squeeze the rice into shape.",
+        caption: "Mini-game 3: squeeze in rhythm, ぎゅっ!",
+      },
+      {
+        src: "/shots/ryoriquest-m-done.jpg",
+        width: 780,
+        height: 1688,
+        alt: "Onigiri finished: three stars, +120 XP, and today's words, with もう一度 Play again and いただきます Let's eat buttons.",
+        caption: "A finished dish: stars, XP and the words you met along the way.",
+      },
+    ],
+  },
+  screenshots: [
+    {
+      src: "/shots/ryoriquest-title.jpg",
+      width: 1600,
+      height: 1000,
+      alt: "The Ryōri Quest title screen: a painted kitchen with Mochiyuko holding a wooden spoon, the 料理クエスト sign above her, and はじめる Start, つづき Continue and せってい Settings buttons.",
+      caption: "The title screen. Every menu leads with hiragana, with the romaji and English underneath.",
+    },
+    {
+      src: "/shots/ryoriquest-step.jpg",
+      width: 1600,
+      height: 1000,
+      alt: "Step 1 of 4 of onigiri: Mochiyuko says ごはんを ください (gohan o kudasai), and the player picks rice from six ingredient tiles. A step tracker and an empty word book sit on the right.",
+      caption: "A mini-game: Mochiyuko asks for an ingredient in Japanese and you tap the right one. The step tracker on the right is what the Playwright playthrough walks through.",
+    },
+    {
+      src: "/shots/ryoriquest-done.jpg",
+      width: 1600,
+      height: 1000,
+      alt: "Onigiri finished with three stars and +120 XP, a list of today's words (dotchi, nigiru, maku, nori, itadakimasu), and the word book on the right filled with the same five words.",
+      caption: "A finished dish: three stars, +120 XP, and the words met along the way saved to the word book, each one tappable to hear again.",
+    },
+    {
+      src: "/shots/ryoriquest-chapter.jpg",
+      width: 1600,
+      height: 1000,
+      alt: "The Home Cooking chapter: onigiri open, omurice and curry rice locked until the dish before them is done, with level, dishes, stars and words on the right.",
+      caption: "Dishes unlock in order inside a chapter, and chapters unlock in order too.",
+    },
+  ],
+  brief:
+    "A cooking game for learning Japanese, played in the browser and installable to a phone's home screen. Menus are in hiragana, and each dish is a run of mini-games hosted by Mochiyuko, who talks you through it, ending in a stamp, stars and XP, with chapters that unlock in order. I built it solo, with AI tools for the code and the art. Mochiyuko's voice is generated locally with Kokoro TTS on my own GPU, and a built-in VoiceDub tool lets a voice actor record over any line from her phone; recordings stay private until an admin publishes them. Accounts and cloud saves run on Supabase, and the whole beta sits behind an invite gate checked on the server.",
+  stack: [
+    "JavaScript",
+    "Vite",
+    "Playwright",
+    "Supabase",
+    "WebGL",
+    "Kokoro TTS",
+    "Vercel",
+    "PWA",
+  ],
+  tests: [
+    {
+      id: "rq-playthrough",
+      title: "a new player cooks onigiri from start to stamp in a real browser",
+      duration: 4380,
+      status: "passed",
+      note: "Playwright plays the built game in Chrome at phone and desktop sizes: chapters and unlocking, a whole dish, stars, XP, the stamp and the victory screen. Mini-games are finished through a test hook that only exists on localhost, and a playthrough fails on any page error or sideways scroll.",
+      tags: ["Playwright", "Game Testing", "E2E"],
+    },
+    {
+      id: "rq-gate",
+      title: "the invite gate is checked on the server before any page or API is served",
+      duration: 2240,
+      status: "passed",
+      note: "Unit tests cover a typed code, a one-tap invite link, a wrong code, and exactly which paths may skip the gate. After each deploy, a smoke check confirms from outside that APIs refuse visitors without a pass and a wrong code is rejected.",
+      tags: ["Security", "Smoke Testing", "Post-deploy"],
+    },
+    {
+      id: "rq-moderation",
+      title: "player names are screened before anyone else can see them",
+      duration: 1320,
+      status: "passed",
+      note: "Display names are tidied and length-checked, and reserved or unfriendly names are refused through a profanity filter, each with its own unit test.",
+      tags: ["Content Moderation", "Unit Testing"],
+    },
+    {
+      id: "rq-voices",
+      title: "voice lines can be replaced by a human without a redeploy",
+      duration: 1980,
+      status: "passed",
+      note: "Generated lines ship with the game. A recorded line replaces the generated one on every device once an admin publishes it. Tests pin down the permissions: only voice contributors may record, and only admins may publish.",
+      tags: ["Kokoro TTS", "Permissions", "Review Workflow"],
+    },
+    {
+      id: "rq-report",
+      title: "an admin kitchen report shows who is playing and where they get stuck",
+      duration: 2710,
+      status: "passed",
+      note: "Analytics events from the game, players per invite code, a live strip of who is playing right now, and each dish's step spread, so a mini-game that loses players shows up as data.",
+      tags: ["Observability", "Analytics"],
+    },
+  ],
+};
+
 const fare: Spec = {
   id: "fare",
   file: "projects/fare.spec.ts",
   title: "Fare",
   kind: "project",
+  summary:
+    "Native Swift driver app, a web dispatch dashboard and a TypeScript middleware over Firebase where the pricing and dispatch rules live. Client work, in development.",
+  skills: [
+    { name: "Mobile (iOS)", note: "The driver app is native Swift on iOS." },
+    { name: "Backend Middleware", note: "A TypeScript service between the apps and Firebase, where the pricing and dispatch rules live." },
+    { name: "Dispatch Systems", note: "A web dashboard where a dispatcher assigns and tracks rides." },
+    { name: "Contract Delivery", note: "Client work for Fare Technologies through SLVRLeaf, with a real deadline; still in development." },
+  ],
   role: "Fare — a rideshare platform whose economics are actually fair",
   org: "Fare Technologies",
   location: "Contract, via SLVRLeaf",
   period: "In development",
   origin: "contract",
+  proprietary:
+    "Fare is proprietary and unreleased, so its screens aren't shown here. I'm happy to walk through the driver app and how it was tested on a call.",
+  links: [
+    { kind: "request", label: "Walkthrough", hint: "On request", href: "", subject: "Fare walkthrough" },
+  ],
   brief:
     "Contract work for Fare Technologies, taken on through SLVRLeaf: a rideshare platform built on the premise that the split between driver and platform should be defensible. Native iOS in Swift for the driver side, a web dispatch dashboard, and a TypeScript middleware layer over Firebase coordinating the two. Still in development — the honest status, not a shipped product.",
   stack: [
@@ -911,9 +1335,17 @@ const fare: Spec = {
 const tiengviet: Spec = {
   id: "tiengviet",
   file: "projects/tieng-viet.spec.ts",
-  title: "Tiếng Việt",
+  title: "Tiếng Việt Learning Tools",
   kind: "project",
-  role: "Tiếng Việt — a Vietnamese learning app that takes dialect seriously",
+  summary:
+    "SwiftUI app with the alphabet recorded in three regional dialects and pronunciation graded by Apple's on-device speech recognition. Game logic sits in a view model under XCTest.",
+  skills: [
+    { name: "Mobile (iOS)", note: "A native SwiftUI app for iPhone." },
+    { name: "Speech Recognition", note: "Pronunciation is graded with Apple's on-device speech recognition." },
+    { name: "Unit Testing", note: "The game logic lives in a view model so XCTest can cover it." },
+    { name: "Dialect Audio", note: "The alphabet is recorded three times, North, Central (Huế) and South, by a different native speaker each." },
+  ],
+  role: "Tiếng Việt Learning Tools — a Vietnamese learning app that takes dialect seriously",
   org: "Personal project",
   location: "iOS · SwiftUI",
   period: "In progress",
@@ -1071,7 +1503,7 @@ export const suites: Suite[] = [
   {
     id: "projects",
     title: "projects",
-    specs: [jobthing, askTheLibrary, fare, tiengviet, sorceror, tesseract],
+    specs: [cur8, ryoriquest, jobthing, askTheLibrary, fare, tiengviet, sorceror, tesseract],
   },
   {
     id: "education",
