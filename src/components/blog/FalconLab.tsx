@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
 import { ShareLinks } from "@/components/blog/ShareLinks";
+import { UpdatedNote } from "@/components/blog/UpdatedNote";
 
 /**
  * "The Anatomy of an Intermittent 500" - interactive essay.
@@ -33,6 +34,7 @@ export function FalconLab() {
           <h1>The Anatomy of an Intermittent 500</h1>
           <div className="byline">Manny Castillo &middot; Senior SDET &middot; August 2026</div>
           <NoteStats slug="anatomy-of-an-intermittent-500" variant="post" />
+          <UpdatedNote slug="anatomy-of-an-intermittent-500" />
           <ShareLinks slug="anatomy-of-an-intermittent-500" placement="top" />
           <div className="hero-art">
             <Image
@@ -48,7 +50,7 @@ export function FalconLab() {
             exception, the status code was manufactured, and the response header that
             support needed to research the failure had been thrown away. The real fault was
             one line in the error handler, on the only path that never gets exercised when
-            things are going well. Budget ~12 minutes.
+            things are going well. Budget ~14 minutes.
           </p>
         </header>
 
@@ -402,6 +404,61 @@ return {"errors": [{"code": status_code, "message": message}], "resources": []}`
           <b>Read the CI config before optimising for it.</b> An afternoon of chasing
           credentials would have bought nothing, because the workflow that needed them was
           never going to run. Ten lines of YAML said so.
+        </p>
+
+        <h2 id="s8"><span className="num">8.</span> What shipped, and what shipped beside it</h2>
+        <div className="time">~2 min &middot; read</div>
+        <p>
+          <a href="https://github.com/CrowdStrike/falconpy/pull/1509">PR #1509</a> was approved
+          and merged to <code>dev</code> on September 23, and released in{" "}
+          <a href="https://github.com/CrowdStrike/falconpy/releases/tag/v1.6.6">v1.6.6</a> on
+          September 28. The merge comment said it was related to two other items, and that
+          turned out to be the most interesting line in the thread.
+        </p>
+        <p>
+          Nine minutes after mine,{" "}
+          <a href="https://github.com/CrowdStrike/falconpy/pull/1510">PR #1510</a> from another
+          contributor merged into the same release. It fixed{" "}
+          <a href="https://github.com/CrowdStrike/falconpy/issues/1498">#1498</a>: non-JSON error
+          bodies were being discarded and replaced with{" "}
+          <i>&ldquo;No content was received for this request.&rdquo;</i> Different report,
+          different symptom, same family. Before 1.6.6, a non-JSON error took one of two paths,
+          and the <code>Content-Type</code> header picked which one. If the header promised
+          something parseable (JSON or plain text), the parse failed and the body was thrown away,
+          but the status and headers survived. Any other header produced raw bytes, which hit the
+          line this post is about, and then everything was thrown away.
+        </p>
+        <p>
+          So I ran the same requests through <code>perform_request()</code> on both released
+          wheels, with real <code>requests.Response</code> objects and no credentials:
+        </p>
+        <div className="fp-table-wrap">
+          <table className="fp-table">
+            <thead>
+              <tr><th>Response</th><th>1.6.5</th><th>1.6.6</th><th>Report</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>502, text/html gateway page</td><td className="bad">500, trace ID lost</td><td className="ok">502, page text</td><td>#1508</td></tr>
+              <tr><td>500, application/octet-stream</td><td className="bad">500, trace ID lost</td><td className="ok">500, payload text</td><td>#1508</td></tr>
+              <tr><td>403, empty body, no Content-Type</td><td className="bad">500, trace ID lost</td><td className="ok">403, &ldquo;No content&rdquo;</td><td>#1508</td></tr>
+              <tr><td>400, text/plain diagnostic</td><td className="bad">400, &ldquo;No content&rdquo;</td><td className="ok">400, server&rsquo;s text</td><td>#1498</td></tr>
+              <tr><td>502, labelled JSON, body is HTML</td><td className="bad">502, &ldquo;No content&rdquo;</td><td className="ok">502, page text</td><td>#1498</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          On 1.6.5 every row is wrong in one of two ways, and 1.6.6 is the first release where
+          every row tells the truth. The 403 row is worth a second look. It returns{" "}
+          <i>&ldquo;No content was received&rdquo;</i>, the exact string #1498 complained about,
+          and here that is correct, because the body really was empty. The message was never the
+          problem. It was being used for responses it did not describe.
+        </p>
+        <p>
+          <b>When two &ldquo;wrong error&rdquo; reports land in the same month, look for the input
+          that splits them.</b> These two were filed separately, described differently, and fixed
+          by different people in the same function, and one header was the whole difference. The
+          tracer in section 4 crosses status codes with response shapes. Add{" "}
+          <code>Content-Type</code> as a third axis and both bugs show up in the same grid.
         </p>
         <ShareLinks slug="anatomy-of-an-intermittent-500" />
       </div>
