@@ -33,6 +33,16 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "anatomy-of-a-half-configured-package",
+    title: "The Anatomy of a Half-Configured Package",
+    date: "2026-10-18",
+    dek: "Falco 0.45 installs cleanly on modern kernels and leaves Ubuntu 20.04 half-configured, without printing a single error. I traced it to two lines that are each harmless alone: a set -e added to the top of the postinst, and a bare command substitution that fails on kernels without modern eBPF. Fixed with two more lines, a test that fails first, and the real packages on 48 VMs. Includes a set -e sandbox, a postinst you can step through, and the qualification grid.",
+    minutes: 12,
+    kind: "interactive",
+    repo: "falcosecurity/falco",
+    evidence: "real .deb and .rpm on 48 VM cells, 0 new failures, 6 new subtests fail on master",
+  },
+  {
     slug: "anatomy-of-a-guard-that-never-passed",
     title: "The Anatomy of a Guard That Never Passed",
     date: "2026-09-02",
