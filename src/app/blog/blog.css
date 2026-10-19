@@ -1803,3 +1803,14 @@ a.ns-chip:hover { filter: brightness(1.25); }
   .postinst-lab .pk-drow { grid-template-columns: 90px 1fr; }
   .postinst-lab .pk-drow > span:last-child { grid-column: 1 / -1; }
 }
+
+/* Same 3:2 plate with callouts at both edges as the guard and falcon posts,
+   so contain it on the paper ground instead of cropping to cover. */
+.postinst-lab .hero-art {
+  max-height: none;
+  background: #e8e4d8;
+}
+.postinst-lab .hero-art img {
+  max-height: 520px;
+  object-fit: contain;
+}

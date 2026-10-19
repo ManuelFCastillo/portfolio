@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { NoteStats } from "@/components/blog/NoteStats";
 import { ShareLinks } from "@/components/blog/ShareLinks";
 import { UpdatedNote } from "@/components/blog/UpdatedNote";
@@ -37,6 +38,15 @@ export function PostinstLab() {
           <NoteStats slug="anatomy-of-a-half-configured-package" variant="post" />
           <UpdatedNote slug="anatomy-of-a-half-configured-package" />
           <ShareLinks slug="anatomy-of-a-half-configured-package" placement="top" />
+          <div className="hero-art">
+            <Image
+              src="/blog/half-configured-package.png"
+              alt="Cutaway engineering plate of an open shipping box labelled Falco, .deb, .rpm, .tar.gz, with eight numbered callouts. Inside: a control card for falco 0.45.0, teal payload blocks for /usr/bin/falco and falcoctl, a postinst scroll reading set -e and driver_env=$(falcoctl driver printenv), an /etc/falco config stack, and a falco-modern-bpf.service plate. A dashed compartment holds the missing pieces, driver.type = ? and engine.kind = ?, and the result is a gear with a red cross."
+              width={1536}
+              height={1024}
+              priority
+            />
+          </div>
           <p className="lede">
             Falco 0.45 installs cleanly on modern kernels and leaves Ubuntu 20.04 half-configured
             without printing a single error. I traced it to <b>two lines that are harmless on their
