@@ -11,6 +11,14 @@ export const metadata: Metadata = {
     description:
       "Two harmless lines, one silent postinst, and 48 real VMs to prove the fix.",
     url: "https://www.mannycastillo.dev/blog/anatomy-of-a-half-configured-package",
+    images: [
+      {
+        url: "https://www.mannycastillo.dev/blog/half-configured-package.png",
+        width: 1536,
+        height: 1024,
+        alt: "Cutaway engineering plate of an open Falco package box: control card, payload, postinst scroll with set -e, /etc/falco configs, falco-modern-bpf.service, and a dashed compartment of missing driver settings",
+      },
+    ],
   },
 };
 

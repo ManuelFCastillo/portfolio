@@ -15,6 +15,10 @@ interface Art {
 }
 
 const ART: Record<string, Art> = {
+  "anatomy-of-a-half-configured-package": {
+    src: "/blog/half-configured-package.png",
+    alt: "Cutaway engineering plate of an open shipping box labelled Falco, .deb, .rpm, .tar.gz, with eight numbered callouts. Inside: a control card for falco 0.45.0, teal payload blocks for /usr/bin/falco and falcoctl, a postinst scroll reading set -e and driver_env=$(falcoctl driver printenv), an /etc/falco config stack, and a falco-modern-bpf.service plate. A dashed compartment holds the missing pieces, driver.type = ? and engine.kind = ?, and the result is a gear with a red cross.",
+  },
   "anatomy-of-a-guard-that-never-passed": {
     src: "/blog/guard-never-passed.png",
     alt: "Cutaway engineering plate of a brass gatehouse mechanism. A teal channel carrying token 712 passes through an open gate to the outlet; an oxblood channel carrying token 891 is stopped by a dropped detent. A comparator arm reads an open ledger listing 706 to 744, with 712 highlighted and 891 absent. A closed book beside the machine is lettered FORK'S OWN LEDGER, NEVER CONSULTED. Numbered callouts name the code paths.",
