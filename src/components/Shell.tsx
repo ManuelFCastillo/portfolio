@@ -28,7 +28,7 @@ function Tab({
       onClick={onClick}
       data-testid={testId}
       aria-current={active ? "page" : undefined}
-      className={`relative flex items-center gap-2 px-3 py-1.5 text-[12.5px] transition-colors ${
+      className={`relative flex items-center gap-2 px-2 py-1.5 text-[12.5px] sm:px-3 transition-colors ${
         active ? "text-fg-strong" : "text-fg-dim hover:text-fg"
       }`}
     >
@@ -74,7 +74,10 @@ export function Shell() {
     <div className="no-print relative z-10 flex h-[100dvh] flex-col">
       {/* Top bar */}
       <header className="relative shrink-0 border-b border-line bg-bg-raised/80 backdrop-blur">
-        <div className="flex items-center justify-between gap-3 px-4 sm:px-6">
+        {/* Four tabs (plus the failure badge once the run settles) barely fit a
+            412px phone, so they tighten below sm; at sm spacing the row
+            overflowed by 2px and the name collapsed to nothing. */}
+        <div className="flex items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3 py-2.5">
             <span className="truncate font-sans text-[13.5px] font-medium tracking-tight text-fg-strong">
               {profile.name}
@@ -109,14 +112,14 @@ export function Shell() {
             <Link
               href="/projects"
               data-testid="tab-projects"
-              className="relative flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-fg-dim transition-colors hover:text-fg"
+              className="relative flex items-center gap-2 px-2 py-1.5 text-[12.5px] sm:px-3 text-fg-dim transition-colors hover:text-fg"
             >
               Projects
             </Link>
             <Link
               href="/blog"
               data-testid="tab-field-notes"
-              className="relative flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-fg-dim transition-colors hover:text-fg"
+              className="relative flex items-center gap-2 px-2 py-1.5 text-[12.5px] sm:px-3 text-fg-dim transition-colors hover:text-fg"
             >
               Field Notes
             </Link>

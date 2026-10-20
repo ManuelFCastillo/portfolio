@@ -208,4 +208,28 @@ test.describe("layout", () => {
       expect(overflow, `${view} view overflows horizontally`).toBeLessThanOrEqual(1);
     }
   });
+
+  // Regression: a fourth tab plus the failure badge left the header 1.8px too
+  // wide on a Pixel 7. scrollWidth rounds, so that passed on some machines and
+  // failed on others; measure the header row itself, unrounded.
+  test("the header tabs fit inside the viewport", async ({ page }) => {
+    await page.goto("/");
+    await settleRun(page);
+    // The badge is what tips it over, so make sure it is there.
+    await expect(page.getByTestId("tab-report")).toContainText(/\d/);
+
+    const { tabsEnd, contentEnd, nameWidth } = await page.evaluate(() => {
+      const tabs = document.querySelector('[data-testid="tab-terminal"]')!.parentElement!;
+      const row = tabs.parentElement!;
+      return {
+        tabsEnd: tabs.getBoundingClientRect().right,
+        contentEnd:
+          row.getBoundingClientRect().right - parseFloat(getComputedStyle(row).paddingRight),
+        nameWidth: row.firstElementChild!.getBoundingClientRect().width,
+      };
+    });
+    expect(tabsEnd, "tabs run into the header padding").toBeLessThanOrEqual(contentEnd);
+    // When they did, flexbox shrank the name to 0px before giving up.
+    expect(nameWidth, "the name was squeezed out of the header").toBeGreaterThan(0);
+  });
 });
